@@ -7,13 +7,17 @@ interface UseGridValues {
     height: number
     numRows: number
     numColumns: number
+    rowGap: number
+    columnGap: number
 }
 
 const initialGridValues = {
     width: 10,
     height: 10,
     numRows: 1,
-    numColumns: 1
+    numColumns: 1,
+    rowGap: 0,
+    columnGap: 0
 }
 
 const GridContext = createContext<UseGridValues>(initialGridValues)
@@ -103,7 +107,9 @@ export function Grid(props: Props): JSX.Element {
             width: width - columnGap,
             height: height - rowGap,
             numRows,
-            numColumns
+            numColumns,
+            rowGap,
+            columnGap
         }}>
         <div style={{
             display: "grid",
@@ -155,7 +161,7 @@ export function GridCell(props: CellProps): JSX.Element {
         children,
     } = props
 
-    const {width, height, numRows, numColumns} = useContext<UseGridValues>(GridContext)
+    const {width, height, numRows, numColumns, rowGap, columnGap} = useContext<UseGridValues>(GridContext)
 
     if (row < 1 || row > numRows) {
         throw new Error(
@@ -183,6 +189,8 @@ export function GridCell(props: CellProps): JSX.Element {
     return (
         <div
             style={{
+                height: cellHeight - rowGap,
+                width: cellWidth - columnGap,
                 gridColumnStart: column,
                 gridColumnEnd: Math.min(column + columnsSpanned, numColumns+1),
                 gridRowStart: row,

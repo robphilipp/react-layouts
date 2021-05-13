@@ -27,22 +27,41 @@ function App() {
     return (
         <Grid numRows={3} numColumns={2} rowGap={10} columnGap={10}>
             <GridCell row={1} column={1}>
-                <div style={{height: '100%', borderStyle: 'none', borderWidth: 1}}>1, 1</div>
+                <div style={{borderStyle: 'none', borderWidth: 1}}>1, 1</div>
             </GridCell>
             <GridCell row={1} column={2}>
-                <div style={{height: '100%', borderStyle: 'none', borderWidth: 1}}>1, 2</div>
+                <div style={{borderStyle: 'none', borderWidth: 1}}>1, 2</div>
             </GridCell>
             <GridCell row={2} column={1}>
-                <div style={{height: '100%', borderStyle: 'solid', borderWidth: 1}}>1, 2</div>
+                <div style={{borderStyle: 'none', borderWidth: 1}}>1, 2</div>
             </GridCell>
             <GridCell row={2} column={2}>
-                <div style={{height: '100%', borderStyle: 'solid', borderWidth: 1}}>2, 2</div>
+                <div style={{borderStyle: 'none', borderWidth: 1}}>2, 2</div>
             </GridCell>
             <GridCell row={3} column={1} columnsSpanned={2}>
-                <div style={{height: '100%', borderStyle: 'none', borderWidth: 1}}>3, 1</div>
+                <div style={{borderStyle: 'none', borderWidth: 1}}>3, 1</div>
             </GridCell>
         </Grid>
     )
+    // return (
+    //     <Grid numRows={3} numColumns={2} rowGap={10} columnGap={10}>
+    //         <GridCell row={1} column={1}>
+    //             <div style={{height: '100%', borderStyle: 'none', borderWidth: 1}}>1, 1</div>
+    //         </GridCell>
+    //         <GridCell row={1} column={2}>
+    //             <div style={{height: '100%', borderStyle: 'none', borderWidth: 1}}>1, 2</div>
+    //         </GridCell>
+    //         <GridCell row={2} column={1}>
+    //             <div style={{height: '100%', borderStyle: 'solid', borderWidth: 1}}>1, 2</div>
+    //         </GridCell>
+    //         <GridCell row={2} column={2}>
+    //             <div style={{height: '100%', borderStyle: 'solid', borderWidth: 1}}>2, 2</div>
+    //         </GridCell>
+    //         <GridCell row={3} column={1} columnsSpanned={2}>
+    //             <div style={{height: '100%', borderStyle: 'none', borderWidth: 1}}>3, 1</div>
+    //         </GridCell>
+    //     </Grid>
+    // )
 }
 
 export default App;

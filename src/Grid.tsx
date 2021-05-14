@@ -9,6 +9,7 @@ interface UseGridValues {
     numColumns: number
     rowGap: number
     columnGap: number
+    showGrid: boolean
 }
 
 const initialGridValues = {
@@ -17,7 +18,8 @@ const initialGridValues = {
     numRows: 1,
     numColumns: 1,
     rowGap: 0,
-    columnGap: 0
+    columnGap: 0,
+    showGrid: false
 }
 
 const GridContext = createContext<UseGridValues>(initialGridValues)
@@ -31,6 +33,7 @@ interface Props {
     rowGap?: number
     // the number pixels between columns in the grid
     columnGap?: number
+    showGrid?: boolean
     // additional styles
     styles?: CSSProperties
     // the children grid-cells
@@ -59,11 +62,13 @@ export function Grid(props: Props): JSX.Element {
         numColumns,
         rowGap = 0,
         columnGap = 0,
+        showGrid = false,
         styles,
         children
     } = props
 
     const {width, height} = useDimensions()
+    console.log("w", width, "h", height)
 
     if (width === undefined || height === undefined) {
         return <></>
@@ -94,29 +99,23 @@ export function Grid(props: Props): JSX.Element {
             child,
             {
                 key: `grid-cell-${child.props.row}-${child.props.column}`,
-                height: height - rowGap,
-                width: width - columnGap,
-                numRows,
-                numColumns
+                height, width,
+                numRows, numColumns
             }
         ))
     }
 
     return (
         <GridContext.Provider value={{
-            width: width - columnGap,
-            height: height - rowGap,
-            numRows,
-            numColumns,
-            rowGap,
-            columnGap
+            width, height,
+            numRows, numColumns,
+            rowGap, columnGap,
+            showGrid
         }}>
         <div style={{
             display: "grid",
             gridTemplateColumns: `repeat(${numColumns}, 1fr)`,
             gridTemplateRows: `repeat(${numRows}, 1fr)`,
-            // minWidth: width / numColumns,
-            // minHeight: height / numRows,
             minWidth: width,
             minHeight: height,
             rowGap,
@@ -128,6 +127,21 @@ export function Grid(props: Props): JSX.Element {
         </GridContext.Provider>
     )
 }
+
+interface UseGridCellValues {
+    width: number
+    height: number
+    row: number
+    column: number
+    rowsSpanned: number
+    columnsSpanned: number
+}
+
+const initialCellValues: UseGridCellValues = {
+    width: 10, height: 10, row: 1, column: 1, rowsSpanned: 1, columnsSpanned: 1
+}
+
+const GridCellContext = createContext<UseGridCellValues>(initialCellValues)
 
 interface CellProps {
     column: number
@@ -161,7 +175,12 @@ export function GridCell(props: CellProps): JSX.Element {
         children,
     } = props
 
-    const {width, height, numRows, numColumns, rowGap, columnGap} = useContext<UseGridValues>(GridContext)
+    const {
+        width, height,
+        numRows, numColumns,
+        rowGap, columnGap,
+        showGrid
+    } = useContext<UseGridValues>(GridContext)
 
     if (row < 1 || row > numRows) {
         throw new Error(
@@ -184,21 +203,48 @@ export function GridCell(props: CellProps): JSX.Element {
         )
     }
 
-    const cellWidth = width * columnsSpanned / numColumns
-    const cellHeight = height * rowsSpanned / numRows
+    function dimension(dim: number, num: number, gap: number, spanned: number): number {
+        const corr = showGrid ? 1 : 0
+        return Math.floor(
+            (dim - (num - 1) * gap) * spanned / num + (spanned - 1) * gap - (corr / 2) * num + (spanned - 1) * corr
+        )
+    }
+
+    const debug: CSSProperties = showGrid ?
+        {borderStyle: 'dashed', borderWidth: 1, borderColor: 'lightgrey'} :
+        {}
+    const cellWidth = dimension(width, numColumns, columnGap, columnsSpanned)
+    const cellHeight = dimension(height, numRows, rowGap, rowsSpanned)
     return (
+        <GridCellContext.Provider value={{
+            width: cellWidth,
+            height: cellHeight,
+            row, column,
+            rowsSpanned, columnsSpanned
+        }}>
         <div
             style={{
-                height: cellHeight - rowGap,
-                width: cellWidth - columnGap,
+                height: cellHeight,
+                width: cellWidth,
                 gridColumnStart: column,
                 gridColumnEnd: Math.min(column + columnsSpanned, numColumns+1),
                 gridRowStart: row,
                 gridRowEnd: Math.min(row + rowsSpanned, numRows+1),
+                ...debug,
                 ...styles
             }}
         >
             {cloneElement(children, {width: cellWidth, height: cellHeight})}
         </div>
+        </GridCellContext.Provider>
     )
+}
+
+export function useGridCell(): UseGridCellValues {
+    const context = useContext<UseGridCellValues>(GridCellContext)
+    const {width, height, row, column} = context
+    if (width === undefined || height === undefined || row === undefined || column === undefined) {
+        throw new Error("useGridCell can only be used when the parent is a <GridCell/>")
+    }
+    return context
 }

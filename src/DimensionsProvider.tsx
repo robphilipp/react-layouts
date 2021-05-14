@@ -1,5 +1,5 @@
 import * as React from "react";
-import {createContext, useContext, useEffect, useRef, useState} from "react";
+import {createContext, useCallback, useContext, useEffect, useRef, useState} from "react";
 
 interface UseDimensionValues {
     width: number
@@ -22,21 +22,21 @@ interface Props {
 export function DimensionsProvider(props: Props): JSX.Element {
     const {children} = props;
 
-    const divRef = useRef<HTMLDivElement>(null)
+    // const divRef = useRef<HTMLDivElement>(null)
     const currentDimensionsRef = useRef<Dimensions>({width: 0, height: 0})
     const [dimensions, setDimensions] = useState<Dimensions>(initialDimensions)
+    const updateDimensions = useCallback(
+        () => {
+            const winDim = {width: window.innerWidth, height: window.innerHeight}
+            if (distance(currentDimensionsRef.current, winDim, 2)) {
+                setDimensions(winDim)
+            }
+        },
+        [currentDimensionsRef]
+    )
 
     useEffect(
         () => {
-            const updateDimensions = () => {
-                if (distance(currentDimensionsRef.current, dimensions, 2)) {
-                    setDimensions({
-                        width: Math.floor(divRef.current?.clientWidth || 0),
-                        height: Math.floor(divRef.current?.clientHeight || 0)
-                    })
-                }
-            }
-
             updateDimensions()
             window.addEventListener('resize', updateDimensions)
 
@@ -44,7 +44,7 @@ export function DimensionsProvider(props: Props): JSX.Element {
                 window.removeEventListener('resize', updateDimensions)
             }
         },
-        []
+        [updateDimensions]
     )
 
     function distance(d1: Dimensions, d2: Dimensions, threshold: number): boolean {
@@ -56,21 +56,19 @@ export function DimensionsProvider(props: Props): JSX.Element {
 
 
     return (
-        <div ref={divRef} style={{
-            height: '100vh',
-            width: '100%',
-            margin: 0,
-            padding: 0,
-            // backgroundColor: 'red'
-        }}>
-            <DimensionsContext.Provider value={{
-                width: dimensions.width,
-                height: dimensions.height,
-            }}
-            >
+        // <div
+        //     // ref={divRef}
+        //     style={{
+        //         height: '100vh',
+        //         width: '100%',
+        //         margin: 0,
+        //         padding: 0,
+        //         // backgroundColor: 'red'
+        //     }}>
+            <DimensionsContext.Provider value={dimensions}>
                 {children}
             </DimensionsContext.Provider>
-        </div>
+        // </div>
     );
 }
 

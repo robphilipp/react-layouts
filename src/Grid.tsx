@@ -203,6 +203,15 @@ export function GridCell(props: CellProps): JSX.Element {
         )
     }
 
+    /**
+     * Calculates the dimension (i.e. width or height) of the grid cell, accounting for the cell gap and
+     * column and row spanning.
+     * @param dim The overall dimension (i.e. width or height) of the area
+     * @param num The number of rows or columns
+     * @param gap The row or column gap
+     * @param spanned The number of rows or columns spanned by this cell
+     * @return The dimension (i.e. width or height) of the cell
+     */
     function dimension(dim: number, num: number, gap: number, spanned: number): number {
         const corr = showGrid ? 1 : 0
         return Math.floor(
@@ -240,6 +249,10 @@ export function GridCell(props: CellProps): JSX.Element {
     )
 }
 
+/**
+ * React hook used to provide information about the grid cell.
+ * @return The width and height of the grid cell and information about the cell's location and spanning
+ */
 export function useGridCell(): UseGridCellValues {
     const context = useContext<UseGridCellValues>(GridCellContext)
     const {width, height, row, column} = context

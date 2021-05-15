@@ -19,7 +19,13 @@ function App() {
                 <CellContents/>
             </GridCell>
             <GridCell row={1} column={3} rowsSpanned={3}>
-                <Grid dimensionsSupplier={useGridCell} numRows={4} numColumns={2} columnGap={5} rowGap={5}>
+                <Grid
+                    dimensionsSupplier={useGridCell}
+                    numRows={4}
+                    numColumns={2}
+                    columnGap={5}
+                    rowGap={5}
+                >
                     <GridCell column={1} row={1}>
                         <CellContents/>
                     </GridCell>

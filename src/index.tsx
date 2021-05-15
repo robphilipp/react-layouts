@@ -2,13 +2,13 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
-import {DimensionsProvider} from "./DimensionsProvider";
+import {WindowDimensionsProvider} from "./WindowDimensionsProvider";
 
 ReactDOM.render(
   <React.StrictMode>
-      <DimensionsProvider>
+      <WindowDimensionsProvider>
           <App />
-      </DimensionsProvider>
+      </WindowDimensionsProvider>
   </React.StrictMode>,
   document.getElementById('root')
 );

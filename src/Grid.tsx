@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {cloneElement, createContext, CSSProperties, useContext} from "react";
-import {useDimensions} from "./DimensionsProvider";
+import {Dimensions} from "./dimensions";
 
 interface UseGridValues {
     width: number
@@ -24,7 +24,10 @@ const initialGridValues = {
 
 const GridContext = createContext<UseGridValues>(initialGridValues)
 
-interface Props {
+export interface Props {
+    // supplies the dimensions of the (parent) container whose dimensions
+    // this grid uses.
+    dimensionsSupplier: () => Dimensions
     // the number of rows in the grid
     numRows: number
     // the number of columns in the grid
@@ -58,6 +61,7 @@ interface Props {
  */
 export function Grid(props: Props): JSX.Element {
     const {
+        dimensionsSupplier,
         numRows,
         numColumns,
         rowGap = 0,
@@ -67,8 +71,7 @@ export function Grid(props: Props): JSX.Element {
         children
     } = props
 
-    const {width, height} = useDimensions()
-    console.log("w", width, "h", height)
+    const {width, height} = dimensionsSupplier()
 
     if (width === undefined || height === undefined) {
         return <></>

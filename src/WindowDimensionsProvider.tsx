@@ -7,16 +7,15 @@ const initialDimensions = {
     height: window.innerHeight,
 }
 
-const DimensionsContext = createContext<UseDimensionValues>(initialDimensions)
+const WindowDimensionsContext = createContext<UseDimensionValues>(initialDimensions)
 
 interface Props {
     children: JSX.Element | Array<JSX.Element>
 }
 
-export function DimensionsProvider(props: Props): JSX.Element {
+export function WindowDimensionsProvider(props: Props): JSX.Element {
     const {children} = props;
 
-    // const divRef = useRef<HTMLDivElement>(null)
     const currentDimensionsRef = useRef<Dimensions>({width: 0, height: 0})
     const [dimensions, setDimensions] = useState<Dimensions>(initialDimensions)
     const updateDimensions = useCallback(
@@ -42,31 +41,21 @@ export function DimensionsProvider(props: Props): JSX.Element {
     )
 
     return (
-        // <div
-        //     // ref={divRef}
-        //     style={{
-        //         height: '100vh',
-        //         width: '100%',
-        //         margin: 0,
-        //         padding: 0,
-        //         // backgroundColor: 'red'
-        //     }}>
-            <DimensionsContext.Provider value={dimensions}>
-                {children}
-            </DimensionsContext.Provider>
-        // </div>
+        <WindowDimensionsContext.Provider value={dimensions}>
+            {children}
+        </WindowDimensionsContext.Provider>
     );
 }
 
 /**
- * React hook that must be used within a {@link DimensionsProvider}
+ * React hook that must be used within a {@link WindowDimensionsProvider}
  * @return The dimensions values of the element
  */
-export function useDimensions(): UseDimensionValues {
-    const context = useContext<UseDimensionValues>(DimensionsContext)
+export function useWindowDimensions(): UseDimensionValues {
+    const context = useContext<UseDimensionValues>(WindowDimensionsContext)
     const {width, height} = context
     if (width === undefined || height === undefined) {
-        throw new Error("useDimensions can only be used when the parent is a <DimensionsProvider/>")
+        throw new Error("useWindowDimensions can only be used when the parent is a <WindowDimensionsProvider/>")
     }
     return context
 }

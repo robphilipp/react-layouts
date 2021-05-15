@@ -1,59 +1,80 @@
 import React from 'react';
-import {Grid, GridCell, useGridCell} from "./Grid";
-import {useWindowDimensions} from "./WindowDimensionsProvider";
+import {useGridCell} from "./Grid";
+import {FlexContainer, FlexDirection, FlexItem} from "./Flex";
 
 function App() {
+    // return (
+    //     <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-around'}}>
+    //         <div>1</div>
+    //         <div>2</div>
+    //         <div>3</div>
+    //     </div>
+    // )
     return (
-        <Grid
-            dimensionsSupplier={useWindowDimensions}
-            numRows={3}
-            numColumns={3}
-            rowGap={10}
-            columnGap={10}
-            showGrid={false}
-        >
-            <GridCell row={1} column={1}>
-                <CellContents/>
-            </GridCell>
-            <GridCell row={1} column={2}>
-                <CellContents/>
-            </GridCell>
-            <GridCell row={1} column={3} rowsSpanned={3}>
-                <Grid
-                    dimensionsSupplier={useGridCell}
-                    numRows={4}
-                    numColumns={2}
-                    columnGap={5}
-                    rowGap={5}
-                >
-                    <GridCell column={1} row={1}>
-                        <CellContents/>
-                    </GridCell>
-                    <GridCell column={1} row={2}>
-                        <CellContents/>
-                    </GridCell>
-                    <GridCell column={1} row={3}>
-                        <CellContents/>
-                    </GridCell>
-                    <GridCell column={1} row={4}>
-                        <CellContents/>
-                    </GridCell>
-                    <GridCell column={2} row={1} rowsSpanned={4}>
-                        <CellContents/>
-                    </GridCell>
-                </Grid>
-            </GridCell>
-            <GridCell row={2} column={1}>
-                <CellContents/>
-            </GridCell>
-            <GridCell row={2} column={2}>
-                <CellContents/>
-            </GridCell>
-            <GridCell row={3} column={1} columnsSpanned={2}>
-                <CellContents/>
-            </GridCell>
-        </Grid>
+        <FlexContainer>
+            <FlexItem>
+                <span>1a</span>
+            </FlexItem>
+            <FlexItem>
+                <span>2b</span>
+            </FlexItem>
+            <FlexItem>
+                <span>3c</span>
+            </FlexItem>
+        </FlexContainer>
     )
+
+    // return (
+    //     <Grid
+    //         dimensionsSupplier={useWindowDimensions}
+    //         numRows={3}
+    //         numColumns={3}
+    //         rowGap={10}
+    //         columnGap={10}
+    //         showGrid={false}
+    //     >
+    //         <GridCell row={1} column={1}>
+    //             <CellContents/>
+    //         </GridCell>
+    //         <GridCell row={1} column={2}>
+    //             <CellContents/>
+    //         </GridCell>
+    //         <GridCell row={1} column={3} rowsSpanned={3}>
+    //             <Grid
+    //                 dimensionsSupplier={useGridCell}
+    //                 numRows={4}
+    //                 numColumns={2}
+    //                 columnGap={5}
+    //                 rowGap={5}
+    //             >
+    //                 <GridCell column={1} row={1}>
+    //                     <CellContents/>
+    //                 </GridCell>
+    //                 <GridCell column={1} row={2}>
+    //                     <CellContents/>
+    //                 </GridCell>
+    //                 <GridCell column={1} row={3}>
+    //                     <CellContents/>
+    //                 </GridCell>
+    //                 <GridCell column={1} row={4}>
+    //                     <CellContents/>
+    //                 </GridCell>
+    //                 <GridCell column={2} row={1} rowsSpanned={4}>
+    //                     <CellContents/>
+    //                 </GridCell>
+    //             </Grid>
+    //         </GridCell>
+    //         <GridCell row={2} column={1}>
+    //             <CellContents/>
+    //         </GridCell>
+    //         <GridCell row={2} column={2}>
+    //             <CellContents/>
+    //         </GridCell>
+    //         <GridCell row={3} column={1} columnsSpanned={2}>
+    //             <CellContents/>
+    //         </GridCell>
+    //     </Grid>
+    // )
 }
 
 function CellContents(): JSX.Element {

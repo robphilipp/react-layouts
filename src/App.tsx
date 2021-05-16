@@ -1,25 +1,21 @@
 import React from 'react';
 import {useGridCell} from "./Grid";
-import {AlignItems, FlexContainer, FlexItem} from "./Flex";
+import {AlignItems, FlexContainer, FlexDirection, FlexItem, useFlexItem} from "./Flex";
+import {useWindowDimensions} from "./WindowDimensionsProvider";
 
 function App() {
-    // return (
-    //     <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-around'}}>
-    //         <div>1</div>
-    //         <div>2</div>
-    //         <div>3</div>
-    //     </div>
-    // )
     return (
-        <FlexContainer styles={{height: 300}}>
-            <FlexItem flexGrow={3} alignSelf={AlignItems.FlexEnd}>
-                <div>1a</div>
+        <FlexContainer dimensionsSupplier={useWindowDimensions} flexDirection={FlexDirection.Column}>
+            <FlexItem flexGrow={3} alignSelf={AlignItems.FlexEnd} order={3}>
+                <BoxContents name='1a'/>
+                <BoxContents name='1b'/>
+                <BoxContents name='1c'/>
             </FlexItem>
             <FlexItem flexGrow={2} alignSelf={AlignItems.FlexStart}>
-                <span>2b</span>
+                <BoxContents name='2a'/>
             </FlexItem>
-            <FlexItem flexBasis={300}>
-                <span>3c</span>
+            <FlexItem flexBasis={300} order={-1}>
+                <BoxContents name='3a'/>
             </FlexItem>
         </FlexContainer>
     )
@@ -88,6 +84,15 @@ function CellContents(): JSX.Element {
             </div>
         </div>
     )
+}
+
+function BoxContents(props: {name: string}): JSX.Element {
+    const {name} = props
+    const {width, height} = useFlexItem()
+    return <div>
+        <div>{name}</div>
+        <div style={{color: 'gray', fontSize: '0.7em', marginRight: 5}}>{width}x{height}</div>
+    </div>
 }
 
 export default App;

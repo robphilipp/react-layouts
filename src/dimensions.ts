@@ -12,7 +12,7 @@ export type Dimensions = UseDimensionValues
  * @param d1 The previous dimensions
  * @param d2 The current dimensions
  * @param threshold The distance threshold in pixels
- * @return `true` if the resize threshold was exceeded; `false` othewise
+ * @return `true` if the resize threshold was exceeded; `false` otherwise
  */
 export function resizeThresholdExceeded(d1: Dimensions, d2: Dimensions, threshold: number): boolean {
     return (Math.sqrt(

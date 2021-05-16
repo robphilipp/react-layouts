@@ -115,18 +115,18 @@ export function Grid(props: Props): JSX.Element {
             rowGap, columnGap,
             showGrid
         }}>
-        <div style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${numColumns}, 1fr)`,
-            gridTemplateRows: `repeat(${numRows}, 1fr)`,
-            minWidth: width,
-            minHeight: height,
-            rowGap,
-            columnGap,
-            ...styles
-        }}>
-            {enrich(children)}
-        </div>
+            <div style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${numColumns}, 1fr)`,
+                gridTemplateRows: `repeat(${numRows}, 1fr)`,
+                minWidth: width,
+                minHeight: height,
+                rowGap,
+                columnGap,
+                ...styles
+            }}>
+                {enrich(children)}
+            </div>
         </GridContext.Provider>
     )
 }
@@ -234,20 +234,20 @@ export function GridCell(props: CellProps): JSX.Element {
             row, column,
             rowsSpanned, columnsSpanned
         }}>
-        <div
-            style={{
-                height: cellHeight,
-                width: cellWidth,
-                gridColumnStart: column,
-                gridColumnEnd: Math.min(column + columnsSpanned, numColumns+1),
-                gridRowStart: row,
-                gridRowEnd: Math.min(row + rowsSpanned, numRows+1),
-                ...debug,
-                ...styles
-            }}
-        >
-            {cloneElement(children, {width: cellWidth, height: cellHeight})}
-        </div>
+            <div
+                style={{
+                    height: cellHeight,
+                    width: cellWidth,
+                    gridColumnStart: column,
+                    gridColumnEnd: Math.min(column + columnsSpanned, numColumns + 1),
+                    gridRowStart: row,
+                    gridRowEnd: Math.min(row + rowsSpanned, numRows + 1),
+                    ...debug,
+                    ...styles
+                }}
+            >
+                {cloneElement(children, {width: cellWidth, height: cellHeight})}
+            </div>
         </GridCellContext.Provider>
     )
 }

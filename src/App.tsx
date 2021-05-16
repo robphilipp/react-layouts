@@ -1,6 +1,6 @@
 import React from 'react';
 import {useGridCell} from "./Grid";
-import {FlexContainer, FlexDirection, FlexItem} from "./Flex";
+import {AlignItems, FlexContainer, FlexItem} from "./Flex";
 
 function App() {
     // return (
@@ -11,14 +11,14 @@ function App() {
     //     </div>
     // )
     return (
-        <FlexContainer>
-            <FlexItem>
-                <span>1a</span>
+        <FlexContainer styles={{height: 300}}>
+            <FlexItem flexGrow={3} alignSelf={AlignItems.FlexEnd}>
+                <div>1a</div>
             </FlexItem>
-            <FlexItem>
+            <FlexItem flexGrow={2} alignSelf={AlignItems.FlexStart}>
                 <span>2b</span>
             </FlexItem>
-            <FlexItem>
+            <FlexItem flexBasis={300}>
                 <span>3c</span>
             </FlexItem>
         </FlexContainer>

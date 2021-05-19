@@ -1,6 +1,6 @@
 import React from 'react';
 import {useGridCell} from "./Grid";
-import {AlignItems, FlexContainer, FlexDirection, FlexItem, useFlexItem} from "./Flex";
+import {Align, FlexContainer, FlexDirection, FlexItem, JustifyContent, useFlexItem} from "./Flex";
 import {useWindowDimensions} from "./WindowDimensionsProvider";
 
 function App() {
@@ -8,18 +8,38 @@ function App() {
         <FlexContainer
             dimensionsSupplier={useWindowDimensions}
             flexDirection={FlexDirection.Row}
-            // alignItems={AlignItems.Stretch}
+            // justifyContent={JustifyContent.SpaceBetween}
+            // alignContent={JustifyContent.SpaceAround}
+            // alignItems={Align.Stretch}
             columnGap={0}
         >
-            <FlexItem flexGrow={3} order={3}>
+            <FlexItem order={3}>
                 <BoxContents name='1a'/>
                 <BoxContents name='1b'/>
                 <BoxContents name='1c'/>
+                {/*<FlexContainer*/}
+                {/*    dimensionsSupplier={useFlexItem}*/}
+                {/*    flexDirection={FlexDirection.Row}*/}
+                {/*    // justifyContent={JustifyContent.SpaceEvenly}*/}
+                {/*    alignContent={Align.Stretch}*/}
+                {/*    // alignItems={Align.Stretch}*/}
+                {/*    columnGap={0}*/}
+                {/*>*/}
+                {/*    <FlexItem>*/}
+                {/*        <BoxContents name='1a'/>*/}
+                {/*    </FlexItem>*/}
+                {/*    <FlexItem>*/}
+                {/*        <BoxContents name='1b'/>*/}
+                {/*    </FlexItem>*/}
+                {/*    <FlexItem>*/}
+                {/*        <BoxContents name='1c'/>*/}
+                {/*    </FlexItem>*/}
+                {/*</FlexContainer>*/}
             </FlexItem>
-            <FlexItem flexGrow={2} alignSelf={AlignItems.FlexStart}>
+            <FlexItem alignSelf={Align.FlexStart}>
                 <BoxContents name='2a'/>
             </FlexItem>
-            <FlexItem flexBasis={300} order={-1} alignSelf={AlignItems.Stretch}>
+            <FlexItem flexBasis={300} order={-1} alignSelf={Align.Stretch}>
                 <BoxContents name='3a'/>
             </FlexItem>
         </FlexContainer>
@@ -95,7 +115,6 @@ function BoxContents(props: { name: string }): JSX.Element {
     const {name} = props
     const {width, height} = useFlexItem()
     return (
-        // <div style={{width, height}}>
         <div>
             <div>{name}</div>
             <div style={{color: 'gray', fontSize: '0.7em', marginRight: 5}}>{width}x{height}</div>

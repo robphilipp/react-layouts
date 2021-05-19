@@ -30,11 +30,13 @@ export enum FlexWrap {
 interface UseFlexValues {
     width?: number
     height?: number
+    flexDirection: FlexDirection
 }
 
 const initialFlexValues: UseFlexValues = {
     width: undefined,
-    height: undefined
+    height: undefined,
+    flexDirection: FlexDirection.Row
 }
 
 const FlexContext = createContext<UseFlexValues>(initialFlexValues)
@@ -49,6 +51,8 @@ interface FlexProps {
     // or if the flex direction is column, this would align horizontally)
     alignItems?: AlignItems
     flexWrap?: FlexWrap
+    columnGap?: number
+    rowGap?: number
     styles?: CSSProperties
     children: JSX.Element | Array<JSX.Element>
 }
@@ -59,6 +63,8 @@ export function FlexContainer(props: FlexProps): JSX.Element {
         flexDirection = FlexDirection.Row,
         alignItems = AlignItems.Center,
         flexWrap = FlexWrap.NoWrap,
+        columnGap,
+        rowGap,
         styles = {},
         children
     } = props
@@ -68,13 +74,14 @@ export function FlexContainer(props: FlexProps): JSX.Element {
     function enrich(children: JSX.Element | Array<JSX.Element>): JSX.Element | Array<JSX.Element> {
         const childElements = Array.isArray(children) ? children : [children];
         return childElements.map(child => cloneElement(child, {
-            width, height
+            width, height,
+            flexDirection,
         }))
     }
 
     return (
         <FlexContext.Provider value={{
-            width, height
+            width, height, flexDirection
         }}>
             <div
                 style={{
@@ -84,6 +91,8 @@ export function FlexContainer(props: FlexProps): JSX.Element {
                     flexDirection,
                     alignItems,
                     flexWrap,
+                    columnGap,
+                    rowGap,
                 }}
             >
                 {enrich(children)}
@@ -95,11 +104,13 @@ export function FlexContainer(props: FlexProps): JSX.Element {
 interface UseFlexItemValues {
     width?: number
     height?: number
+    flexDirection: FlexDirection
 }
 
 const initialFlexItemValues: UseFlexItemValues = {
     width: undefined,
-    height: undefined
+    height: undefined,
+    flexDirection: FlexDirection.Row
 }
 
 const FlexItemContext = createContext<UseFlexItemValues>(initialFlexItemValues)
@@ -125,14 +136,20 @@ export function FlexItem(props: FlexItemProps): JSX.Element {
         children,
     } = props
 
-    const {width, height} = useContext<UseFlexValues>(FlexContext)
+    const {width, height, flexDirection} = useContext<UseFlexValues>(FlexContext)
 
     const [cellDimensions, setCellDimensions] = useState<Dimensions>({width: 10, height: 10})
     const divRef = useCallback(
         (node: HTMLDivElement) => {
             if (node !== null) {
-                const {width, height} = node.getBoundingClientRect()
-                setCellDimensions({width: Math.floor(width), height: Math.floor(height)})
+                // const {width: cellWidth, height: cellHeight} = node.getBoundingClientRect()
+                const dims = node.getBoundingClientRect()
+                if (flexDirection === FlexDirection.Row) {
+                    dims.height = height || dims.height
+                } else {
+                    dims.width = width || dims.width
+                }
+                setCellDimensions({width: Math.floor(dims.width), height: Math.floor(dims.height)})
             }
         },
         [width, height]
@@ -149,7 +166,8 @@ export function FlexItem(props: FlexItemProps): JSX.Element {
     return (
         <FlexItemContext.Provider value={{
             width: cellDimensions.width,
-            height: cellDimensions.height
+            height: cellDimensions.height,
+            flexDirection
         }}>
             <div ref={divRef} style={{
                 display: 'flex',

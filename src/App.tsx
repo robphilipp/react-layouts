@@ -5,8 +5,13 @@ import {useWindowDimensions} from "./WindowDimensionsProvider";
 
 function App() {
     return (
-        <FlexContainer dimensionsSupplier={useWindowDimensions} flexDirection={FlexDirection.Column}>
-            <FlexItem flexGrow={3} alignSelf={AlignItems.FlexEnd} order={3}>
+        <FlexContainer
+            dimensionsSupplier={useWindowDimensions}
+            flexDirection={FlexDirection.Row}
+            // alignItems={AlignItems.Stretch}
+            columnGap={0}
+        >
+            <FlexItem flexGrow={3} order={3}>
                 <BoxContents name='1a'/>
                 <BoxContents name='1b'/>
                 <BoxContents name='1c'/>
@@ -14,7 +19,7 @@ function App() {
             <FlexItem flexGrow={2} alignSelf={AlignItems.FlexStart}>
                 <BoxContents name='2a'/>
             </FlexItem>
-            <FlexItem flexBasis={300} order={-1}>
+            <FlexItem flexBasis={300} order={-1} alignSelf={AlignItems.Stretch}>
                 <BoxContents name='3a'/>
             </FlexItem>
         </FlexContainer>
@@ -78,21 +83,24 @@ function CellContents(): JSX.Element {
     return (
         <div style={{height}}>
             <div style={{backgroundColor: 'lightgrey', height: '100%'}}>
-            <div>{row}, {column}</div>
-            <div style={{fontSize: '0.7em', color: 'grey'}}>{width} x {height}</div>
-            <div style={{fontSize: '0.7em', color: 'grey'}}>({rowsSpanned}, {columnsSpanned})</div>
+                <div>{row}, {column}</div>
+                <div style={{fontSize: '0.7em', color: 'grey'}}>{width} x {height}</div>
+                <div style={{fontSize: '0.7em', color: 'grey'}}>({rowsSpanned}, {columnsSpanned})</div>
             </div>
         </div>
     )
 }
 
-function BoxContents(props: {name: string}): JSX.Element {
+function BoxContents(props: { name: string }): JSX.Element {
     const {name} = props
     const {width, height} = useFlexItem()
-    return <div>
-        <div>{name}</div>
-        <div style={{color: 'gray', fontSize: '0.7em', marginRight: 5}}>{width}x{height}</div>
-    </div>
+    return (
+        // <div style={{width, height}}>
+        <div>
+            <div>{name}</div>
+            <div style={{color: 'gray', fontSize: '0.7em', marginRight: 5}}>{width}x{height}</div>
+        </div>
+    )
 }
 
 export default App;

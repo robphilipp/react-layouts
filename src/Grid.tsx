@@ -1,22 +1,26 @@
 import * as React from 'react'
-import {cloneElement, createContext, CSSProperties, useContext} from "react";
+import {cloneElement, createContext, CSSProperties, useCallback, useContext, useLayoutEffect, useState} from 'react'
 import {Dimensions} from "./dimensions";
 
 interface UseGridValues {
     width: number
     height: number
-    numRows: number
-    numColumns: number
+    // numRows: number
+    // numColumns: number
+    gridTemplateRows: Array<GridLine>
+    gridTemplateColumns: Array<GridLine>
     rowGap: number
     columnGap: number
     showGrid: boolean
 }
 
-const initialGridValues = {
+const initialGridValues: UseGridValues = {
     width: 10,
     height: 10,
-    numRows: 1,
-    numColumns: 1,
+    // numRows: 1,
+    // numColumns: 1,
+    gridTemplateRows: [],
+    gridTemplateColumns: [],
     rowGap: 0,
     columnGap: 0,
     showGrid: false
@@ -24,14 +28,17 @@ const initialGridValues = {
 
 const GridContext = createContext<UseGridValues>(initialGridValues)
 
+interface GridDimensions {
+    numRows: number
+    numColumns: number
+}
+
 export interface Props {
     // supplies the dimensions of the (parent) container whose dimensions
     // this grid uses.
     dimensionsSupplier: () => Dimensions
-    // the number of rows in the grid
-    numRows: number
-    // the number of columns in the grid
-    numColumns: number
+    gridTemplateRows?: Array<GridLine>
+    gridTemplateColumns?: Array<GridLine>
     // the number pixels between rows in the grid
     rowGap?: number
     // the number pixels between columns in the grid
@@ -62,8 +69,8 @@ export interface Props {
 export function Grid(props: Props): JSX.Element {
     const {
         dimensionsSupplier,
-        numRows,
-        numColumns,
+        gridTemplateRows,
+        gridTemplateColumns,
         rowGap = 0,
         columnGap = 0,
         showGrid = false,
@@ -73,15 +80,55 @@ export function Grid(props: Props): JSX.Element {
 
     const {width, height} = dimensionsSupplier()
 
+    const calcGridDimensions = useCallback(
+        (): GridDimensions => {
+            if (!Array.isArray(children)) {
+                return {
+                    numRows: (children.props as CellProps).row,
+                    numColumns: (children.props as CellProps).column
+                }
+            }
+            return children
+                .map(child => {
+                    const props = (child.props as CellProps)
+                    return {numRows: props.row, numColumns: props.column} as GridDimensions
+                })
+                .reduce((dim1, dim2) => ({
+                    numRows: Math.max(dim1.numRows, dim2.numRows),
+                    numColumns: Math.max(dim1.numColumns, dim2.numColumns)
+                }))
+        },
+        [children]
+    )
+
+    const [gridDimensions, setGridDimensions] = useState<GridDimensions>(calcGridDimensions())
+
+    useLayoutEffect(
+        () => {
+            setGridDimensions(calcGridDimensions())
+        },
+        [calcGridDimensions]
+    )
+
     if (width === undefined || height === undefined) {
         return <></>
     }
-    if (numRows <= 0) {
-        throw new Error(`<Grid/> rows must be 1 or larger; specified rows: ${numRows}`)
+
+    // todo we only want to recalculate this when the templates weren't specified
+    const {numRows, numColumns} = gridDimensions
+
+    if (numRows <= 0 && gridTemplateRows === undefined) {
+        throw new Error(`<Grid/> rows defined by the children must be 1 or larger, or the grid-template-rows property must be set; specified rows: ${numRows}`)
     }
-    if (numColumns <= 0) {
-        throw new Error(`<Grid/> columns must be 1 or larger; specified columns: ${numColumns}`)
+    if (numColumns <= 0 && gridTemplateColumns === undefined) {
+        throw new Error(`<Grid/> columns defined by the children must be 1 or larger, or the grid-template-columns property must be set; specified columns: ${numColumns}`)
     }
+
+    // use the specified grid templates, or use the default values calculated from the
+    // children's (row, column) properties
+    // todo move this into a useMemo so that they are only recalculated if the values change
+    const templateRows = gridTemplateRows || repeat(numRows, fractionFor(1))
+    const templateColumns = gridTemplateColumns || repeat(numColumns, fractionFor(1))
 
     /**
      * Clones the children (or child) and adds the height, width, numRows, and numColumns props.
@@ -111,14 +158,16 @@ export function Grid(props: Props): JSX.Element {
     return (
         <GridContext.Provider value={{
             width, height,
-            numRows, numColumns,
+            // numRows, numColumns,
+            gridTemplateRows: templateRows,
+            gridTemplateColumns: templateColumns,
             rowGap, columnGap,
             showGrid
         }}>
             <div style={{
                 display: "grid",
-                gridTemplateColumns: `repeat(${numColumns}, 1fr)`,
-                gridTemplateRows: `repeat(${numRows}, 1fr)`,
+                gridTemplateRows: gridLinesToString(templateRows),
+                gridTemplateColumns: gridLinesToString(templateColumns),
                 minWidth: width,
                 minHeight: height,
                 rowGap,
@@ -180,10 +229,14 @@ export function GridCell(props: CellProps): JSX.Element {
 
     const {
         width, height,
-        numRows, numColumns,
+        // numRows, numColumns,
+        gridTemplateRows, gridTemplateColumns,
         rowGap, columnGap,
         showGrid
     } = useContext<UseGridValues>(GridContext)
+
+    const numRows = gridTemplateRows.length
+    const numColumns = gridTemplateColumns.length
 
     if (row < 1 || row > numRows) {
         throw new Error(
@@ -215,7 +268,7 @@ export function GridCell(props: CellProps): JSX.Element {
      * @param spanned The number of rows or columns spanned by this cell
      * @return The dimension (i.e. width or height) of the cell
      */
-    function dimension(dim: number, num: number, gap: number, spanned: number): number {
+    function sizeFor(dim: number, num: number, gap: number, spanned: number): number {
         const corr = showGrid ? 1 : 0
         return Math.floor(
             (dim - (num - 1) * gap) * spanned / num + (spanned - 1) * gap - (corr / 2) * num + (spanned - 1) * corr
@@ -225,8 +278,8 @@ export function GridCell(props: CellProps): JSX.Element {
     const debug: CSSProperties = showGrid ?
         {borderStyle: 'dashed', borderWidth: 1, borderColor: 'lightgrey'} :
         {}
-    const cellWidth = dimension(width, numColumns, columnGap, columnsSpanned)
-    const cellHeight = dimension(height, numRows, rowGap, rowsSpanned)
+    const cellWidth = sizeFor(width, numColumns, columnGap, columnsSpanned)
+    const cellHeight = sizeFor(height, numRows, rowGap, rowsSpanned)
     return (
         <GridCellContext.Provider value={{
             width: cellWidth,
@@ -263,4 +316,76 @@ export function useGridCell(): UseGridCellValues {
         throw new Error("useGridCell can only be used when the parent is a <GridCell/>")
     }
     return context
+}
+
+enum TrackSizeType {
+    Pixel= 'px',
+    Percentage = '%',
+    Fraction = 'fr',
+    Auto = 'auto'
+}
+
+const PixelRegex = /[0-9]+px/i
+const PercentageRegex = /[0-9]+%/
+const FractionRegex = /[0-9]+fr/
+const AutoRegex = /auto/i
+
+export interface GridTrack {
+    amount?: number
+    sizeType: TrackSizeType
+    asString: () => string
+}
+
+/**
+ * Names for the grid line (i.e. represented in css as [name1 name2 ... nameN]
+ */
+export interface GridLine {
+    names: Array<string>
+    size: GridTrack
+    asString: () => string
+}
+
+function namesFor(names?: Array<string>): string {
+    return names && names.length > 0 ?
+        `[${names.join(" ")}] ` :
+        ""
+}
+
+function gridLineFor(names: Array<string> | undefined, amount: number | undefined, sizeType: TrackSizeType,): GridLine {
+    const amountString = amount !== undefined ?
+        () => `${Math.floor(amount)}${sizeType}` :
+        () => `${sizeType}`
+    return {
+        names: names || [],
+        size: {amount, sizeType, asString: amountString},
+        asString: () => `${namesFor(names)}${amountString()}`
+    }
+}
+
+export function gridLinesToString(gridLines: Array<GridLine>): string {
+    return gridLines.map(line => line.asString()).join(" ")
+}
+
+export function repeat(times: number, gridLine: GridLine): Array<GridLine> {
+    const gridLines: Array<GridLine> = []
+    for(let i = 0; i < times; ++i) {
+        gridLines.push(gridLine)
+    }
+    return gridLines
+}
+
+export function pixelsFor(pixels: number, names?: Array<string>): GridLine {
+    return gridLineFor(names, pixels, TrackSizeType.Pixel)
+}
+
+export function percentageFor(percentage: number, names?: Array<string>): GridLine {
+    return gridLineFor(names, percentage, TrackSizeType.Percentage)
+}
+
+export function fractionFor(fraction: number, names?: Array<string>): GridLine {
+    return gridLineFor(names, fraction, TrackSizeType.Fraction)
+}
+
+export function autoFor(names?: Array<string>): GridLine {
+    return gridLineFor(names, undefined, TrackSizeType.Auto)
 }

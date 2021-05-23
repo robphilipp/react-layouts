@@ -113,3 +113,13 @@ test('should be able to calculate the track sizes for multiple fractions and per
     expect(dimensions[2]).toBe(40)
     expect(dimensions[3]).toBe(30)
 })
+
+test('should be able to calculate the track sizes for single fraction', () => {
+    const template = gridTrackTemplateBuilder()
+        .addTrack(withFraction(1), withLineNames('one', 'two'))
+        .build(withLineNames('end'))
+
+    const dimensions = template.trackSizes(100)
+    expect(dimensions.length).toEqual(template.trackList.length)
+    expect(dimensions[0]).toBe(100)
+})

@@ -2,7 +2,7 @@ import React from 'react';
 import {Grid, GridCell, useGridCell} from "./Grid";
 import {Align, FlexContainer, FlexDirection, FlexItem, JustifyContent, useFlexItem} from "./Flex";
 import {useWindowDimensions} from "./WindowDimensionsProvider";
-import {gridTrackTemplateBuilder, withFraction, withGridTrack} from "./gridTemplateParser";
+import {gridTrackTemplateBuilder, withFraction, withGridTrack, withLineNames, withPixels} from "./gridTemplateParser";
 
 function App() {
     // return (
@@ -49,6 +49,11 @@ function App() {
     return (
         <Grid
             dimensionsSupplier={useWindowDimensions}
+            gridTemplateColumns={gridTrackTemplateBuilder()
+                .addTrack(withPixels(200), withLineNames('nav'))
+                .repeatFor(2, withGridTrack(withFraction(1), 'last one'))
+                .build()
+            }
             rowGap={10}
             columnGap={10}
             showGrid={false}
@@ -85,6 +90,7 @@ function App() {
                         <CellContents/>
                     </GridCell>
                 </Grid>
+                {/*<CellContents/>*/}
             </GridCell>
             <GridCell row={2} column={1}>
                 <CellContents/>

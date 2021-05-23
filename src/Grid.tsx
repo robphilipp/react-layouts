@@ -1,5 +1,14 @@
 import * as React from 'react'
-import {cloneElement, createContext, CSSProperties, useCallback, useContext, useLayoutEffect, useState} from 'react'
+import {
+    cloneElement,
+    createContext,
+    CSSProperties,
+    useCallback,
+    useContext,
+    useEffect,
+    useLayoutEffect,
+    useState
+} from 'react'
 import {Dimensions} from "./dimensions";
 import {
     emptyGridTrackTemplate,
@@ -259,6 +268,17 @@ export function GridCell(props: CellProps): JSX.Element {
     // const numRows = gridTemplateRows.length
     // const numColumns = gridTemplateColumns.length
 
+    // const [cellWidth, setCellWidth] = useState<number>(cellDimensionFor(width, column, columnGap, columnsSpanned, gridTemplateColumns))
+    // const [cellHeight, setCellHeight] = useState<number>(cellDimensionFor(height, row, rowGap, rowsSpanned, gridTemplateRows))
+    //
+    // useEffect(
+    //     () => {
+    //         setCellWidth(cellDimensionFor(width, column, columnGap, columnsSpanned, gridTemplateColumns))
+    //         setCellHeight(cellDimensionFor(height, row, rowGap, rowsSpanned, gridTemplateRows))
+    //     },
+    //     [gridTemplateRows, gridTemplateColumns, width, column, columnGap, columnsSpanned, height, row, rowGap, rowsSpanned]
+    // )
+
     if (row < 1 || row > numRows) {
         throw new Error(
             `<GridCell/> row must be greater than 1 and less than the number of rows; number rows: ${numRows}; row: ${row}`
@@ -296,11 +316,29 @@ export function GridCell(props: CellProps): JSX.Element {
         )
     }
 
+    function cellDimensionFor(containerSize: number, dimension: number, gap: number, spanned: number, gridTrackTemplate: GridTrackTemplate): number {
+        const index = dimension - 1
+        const spannedTrackSize = gridTrackTemplate.trackSizes(containerSize)
+            .slice(index, index + spanned)
+            .reduce((a, b) => a + b, 0)
+        const numTracks = gridTrackTemplate.trackList.length
+        const numGaps = numTracks - spanned
+        return Math.floor(spannedTrackSize - numGaps * gap / numTracks)
+    }
+
     const debug: CSSProperties = showGrid ?
         {borderStyle: 'dashed', borderWidth: 1, borderColor: 'lightgrey'} :
         {}
-    const cellWidth = sizeFor(width, numColumns, columnGap, columnsSpanned)
-    const cellHeight = sizeFor(height, numRows, rowGap, rowsSpanned)
+    const cellWidth = cellDimensionFor(width, column, columnGap, columnsSpanned, gridTemplateColumns)
+    const cellHeight = cellDimensionFor(height, row, rowGap, rowsSpanned, gridTemplateRows)
+    // console.log(
+    //     "cell (r, c)", row, column,
+    //     "dims (w, h)", cellWidth, cellHeight,
+    //     "spanned (r, c)", rowsSpanned, columnsSpanned,
+    //     "template (r, c)", gridTemplateRows.trackSizes(height), gridTemplateColumns.trackSizes(width)
+    // )
+    // const cellWidth = sizeFor(width, numColumns, columnGap, columnsSpanned)
+    // const cellHeight = sizeFor(height, numRows, rowGap, rowsSpanned)
     return (
         <GridCellContext.Provider value={{
             width: cellWidth,

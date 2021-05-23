@@ -204,3 +204,5 @@ Now, the (1, 3) cell contains a nested `<Grid/>`.
 ![simple grid](docs/images/nested-grid-small.png)
 
 ![simple grid](docs/images/nested-grid.png)
+
+![nested grid movie](docs/images/grid-layout-resizing.mov)

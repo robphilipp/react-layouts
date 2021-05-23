@@ -1,6 +1,6 @@
-import React, {useEffect, useLayoutEffect, useRef} from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 import {Grid, GridCell, useGridCell} from "./Grid";
-import {Align, FlexContainer, FlexDirection, FlexItem, JustifyContent, useFlexItem} from "./Flex";
+import {useFlexItem} from "./Flex";
 import {useWindowDimensions} from "./WindowDimensionsProvider";
 import {gridTrackTemplateBuilder, withFraction, withGridTrack, withLineNames, withPixels} from "./gridTemplateParser";
 
@@ -70,7 +70,6 @@ function App() {
                     gridTemplateColumns={gridTrackTemplateBuilder()
                         .repeatFor(3, withGridTrack(withFraction(1), 'last one'))
                         .build()}
-                    // gridTemplateColumns={repeat(3, fractionFor(1, ['last one']))}
                     columnGap={1}
                     rowGap={1}
                 >
@@ -113,7 +112,7 @@ function CellContents(): JSX.Element {
                 <div>{row}, {column}</div>
                 <div style={{fontSize: '0.7em', color: 'grey'}}>{width} x {height}</div>
                 <div style={{fontSize: '0.7em', color: 'grey'}}>({rowsSpanned} x {columnsSpanned})</div>
-                <Canvas width={width/2} height={height/2}/>
+                <Canvas width={width/2} height={height/3}/>
             </div>
         </div>
     )
@@ -124,6 +123,7 @@ interface CanvasProps {
     height: number
 }
 
+
 function Canvas(props: CanvasProps): JSX.Element {
     const {width, height} = props;
     const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -133,7 +133,7 @@ function Canvas(props: CanvasProps): JSX.Element {
             if (canvasRef.current !== null) {
                 const context = canvasRef.current.getContext('2d')
                 if (context) {
-                    context.fillStyle = 'dodgerblue'
+                    context.fillStyle = `rgb(${width % 255}, ${height % 255}, 100)`
                     context.rect(10, 10, width - 10, height - 10)
                     context.fill()
                 }

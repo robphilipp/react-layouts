@@ -54,8 +54,8 @@ function App() {
                 .repeatFor(2, withGridTrack(withFraction(1), 'last one'))
                 .build()
             }
-            rowGap={10}
-            columnGap={10}
+            rowGap={5}
+            columnGap={5}
             showGrid={false}
         >
             <GridCell row={1} column={1}>
@@ -71,8 +71,8 @@ function App() {
                         .repeatFor(3, withGridTrack(withFraction(1), 'last one'))
                         .build()}
                     // gridTemplateColumns={repeat(3, fractionFor(1, ['last one']))}
-                    columnGap={5}
-                    rowGap={5}
+                    columnGap={1}
+                    rowGap={1}
                 >
                     <GridCell column={1} row={1}>
                         <CellContents/>

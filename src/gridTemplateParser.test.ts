@@ -4,7 +4,7 @@ import {
     withLineNames,
     withPixels,
     TrackSizeType,
-    withGridTrack, withPercentage, withFraction
+    withGridTrack, withPercentage, withFraction, cellDimensionFor
 } from "./gridTemplateParser";
 
 test('should be able to build a simple grid template with one auto track and no line names', () => {
@@ -122,4 +122,37 @@ test('should be able to calculate the track sizes for single fraction', () => {
     const dimensions = template.trackSizes(100)
     expect(dimensions.length).toEqual(template.trackList.length)
     expect(dimensions[0]).toBe(100)
+})
+
+test('should be able to calculate the track sizes for a fixed and 2 fractions', () => {
+    const template = gridTrackTemplateBuilder()
+        .addTrack(withPixels(200), withLineNames('nav'))
+        .repeatFor(2, withGridTrack(withFraction(1), 'one', 'two'))
+        .build(withLineNames('end'))
+
+    const dimensions = template.trackSizes(1000)
+    expect(dimensions.length).toEqual(template.trackList.length)
+    expect(dimensions[0]).toBe(200)
+    expect(dimensions[1]).toBe(400)
+    expect(dimensions[2]).toBe(400)
+})
+
+test('should calculate the cell size based on the grid template, gap, and container size', () => {
+    const template = gridTrackTemplateBuilder()
+        .addTrack(withPixels(200), withLineNames('nav'))
+        .repeatFor(2, withGridTrack(withFraction(1), 'one', 'two'))
+        .build(withLineNames('end'))
+
+    const containerSize = 1000
+    const gap = 30
+    // fixed sizes must be the specified size, which means that the gap must be
+    // removed from the fractional or percent tracks
+    let size = cellDimensionFor(containerSize, 1, gap, 1, template)
+    expect(size).toBe(200)
+    // there are two gaps, and because the first track is fixed, the gap must be removed
+    // from the the next two fractional tracks, so each loses the gap (30 px)
+    size = cellDimensionFor(containerSize, 2, gap, 1, template)
+    expect(size).toBe(400 - gap)
+    size = cellDimensionFor(containerSize, 3, gap, 1, template)
+    expect(size).toBe(400 - gap)
 })

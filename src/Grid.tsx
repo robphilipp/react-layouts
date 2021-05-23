@@ -318,17 +318,16 @@ export function useGridCell(): UseGridCellValues {
     return context
 }
 
+/*
+ | SUPPORT FUNCTIONS AND INTERFACES
+ */
+
 enum TrackSizeType {
     Pixel= 'px',
     Percentage = '%',
     Fraction = 'fr',
     Auto = 'auto'
 }
-
-const PixelRegex = /[0-9]+px/i
-const PercentageRegex = /[0-9]+%/
-const FractionRegex = /[0-9]+fr/
-const AutoRegex = /auto/i
 
 export interface GridTrack {
     amount?: number

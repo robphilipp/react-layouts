@@ -90,18 +90,6 @@ export function withLineNames(...names: string[]): GridLineNames {
     return {names, asString: namesFor}
 }
 
-// export function gridLinesToString(gridLines: Array<GridLineNames>): string {
-//     return gridLines.map(line => line.asString()).join(" ")
-// }
-//
-// export function repeat(times: number, gridLine: GridLineNames): Array<GridLineNames> {
-//     const gridLines: Array<GridLineNames> = []
-//     for(let i = 0; i < times; ++i) {
-//         gridLines.push(gridLine)
-//     }
-//     return gridLines
-// }
-
 export function withGridTrack(gridTrackSize: GridTrackSize, ...names: string[]): GridTrack {
     return {lineNames: withLineNames(...names), track: gridTrackSize}
 }

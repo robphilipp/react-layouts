@@ -205,4 +205,7 @@ Now, the (1, 3) cell contains a nested `<Grid/>`.
 
 ![simple grid](docs/images/nested-grid.png)
 
-![nested grid movie](docs/images/grid-layout-resizing.mov)
+[comment]: <> (![nested grid movie]&#40;docs/images/grid-layout-resizing.mov&#41;)
+<video width="320" height="240" controls>
+  <source src="docs/images/grid-layout-resizing.mov" type="video/mp4">
+</video>

@@ -1,14 +1,23 @@
 import * as React from 'react'
 import {cloneElement, createContext, CSSProperties, useCallback, useContext, useLayoutEffect, useState} from 'react'
 import {Dimensions} from "./dimensions";
+import {
+    emptyGridTrackTemplate,
+    GridTrackTemplate,
+    gridTrackTemplateBuilder,
+    withFraction,
+    withGridTrack
+} from "./gridTemplateParser";
 
 interface UseGridValues {
     width: number
     height: number
     // numRows: number
     // numColumns: number
-    gridTemplateRows: Array<GridLine>
-    gridTemplateColumns: Array<GridLine>
+    gridTemplateRows: GridTrackTemplate
+    gridTemplateColumns: GridTrackTemplate
+    // gridTemplateRows: Array<GridLine>
+    // gridTemplateColumns: Array<GridLine>
     rowGap: number
     columnGap: number
     showGrid: boolean
@@ -19,8 +28,8 @@ const initialGridValues: UseGridValues = {
     height: 10,
     // numRows: 1,
     // numColumns: 1,
-    gridTemplateRows: [],
-    gridTemplateColumns: [],
+    gridTemplateRows: emptyGridTrackTemplate(),
+    gridTemplateColumns: emptyGridTrackTemplate(),
     rowGap: 0,
     columnGap: 0,
     showGrid: false
@@ -37,8 +46,10 @@ export interface Props {
     // supplies the dimensions of the (parent) container whose dimensions
     // this grid uses.
     dimensionsSupplier: () => Dimensions
-    gridTemplateRows?: Array<GridLine>
-    gridTemplateColumns?: Array<GridLine>
+    gridTemplateRows?: GridTrackTemplate
+    gridTemplateColumns?: GridTrackTemplate
+    // gridTemplateRows?: Array<GridLine>
+    // gridTemplateColumns?: Array<GridLine>
     // the number pixels between rows in the grid
     rowGap?: number
     // the number pixels between columns in the grid
@@ -127,8 +138,14 @@ export function Grid(props: Props): JSX.Element {
     // use the specified grid templates, or use the default values calculated from the
     // children's (row, column) properties
     // todo move this into a useMemo so that they are only recalculated if the values change
-    const templateRows = gridTemplateRows || repeat(numRows, fractionFor(1))
-    const templateColumns = gridTemplateColumns || repeat(numColumns, fractionFor(1))
+    const templateRows = gridTemplateRows || gridTrackTemplateBuilder()
+        .repeatFor(numRows, withGridTrack(withFraction(1)))
+        .build()
+    const templateColumns = gridTemplateColumns || gridTrackTemplateBuilder()
+        .repeatFor(numColumns, withGridTrack(withFraction(1)))
+        .build()
+    // const templateRows = gridTemplateRows || repeat(numRows, fractionFor(1))
+    // const templateColumns = gridTemplateColumns || repeat(numColumns, fractionFor(1))
 
     /**
      * Clones the children (or child) and adds the height, width, numRows, and numColumns props.
@@ -166,8 +183,10 @@ export function Grid(props: Props): JSX.Element {
         }}>
             <div style={{
                 display: "grid",
-                gridTemplateRows: gridLinesToString(templateRows),
-                gridTemplateColumns: gridLinesToString(templateColumns),
+                gridTemplateRows: templateRows.asString(),
+                gridTemplateColumns: templateColumns.asString(),
+                // gridTemplateRows: gridLinesToString(templateRows),
+                // gridTemplateColumns: gridLinesToString(templateColumns),
                 minWidth: width,
                 minHeight: height,
                 rowGap,
@@ -235,8 +254,10 @@ export function GridCell(props: CellProps): JSX.Element {
         showGrid
     } = useContext<UseGridValues>(GridContext)
 
-    const numRows = gridTemplateRows.length
-    const numColumns = gridTemplateColumns.length
+    const numRows = gridTemplateRows.trackList.length
+    const numColumns = gridTemplateColumns.trackList.length
+    // const numRows = gridTemplateRows.length
+    // const numColumns = gridTemplateColumns.length
 
     if (row < 1 || row > numRows) {
         throw new Error(
@@ -321,70 +342,70 @@ export function useGridCell(): UseGridCellValues {
 /*
  | SUPPORT FUNCTIONS AND INTERFACES
  */
-
-enum TrackSizeType {
-    Pixel= 'px',
-    Percentage = '%',
-    Fraction = 'fr',
-    Auto = 'auto'
-}
-
-export interface GridTrack {
-    amount?: number
-    sizeType: TrackSizeType
-    asString: () => string
-}
-
-/**
- * Names for the grid line (i.e. represented in css as [name1 name2 ... nameN]
- */
-export interface GridLine {
-    names: Array<string>
-    size: GridTrack
-    asString: () => string
-}
-
-function namesFor(names?: Array<string>): string {
-    return names && names.length > 0 ?
-        `[${names.join(" ")}] ` :
-        ""
-}
-
-function gridLineFor(names: Array<string> | undefined, amount: number | undefined, sizeType: TrackSizeType,): GridLine {
-    const amountString = amount !== undefined ?
-        () => `${Math.floor(amount)}${sizeType}` :
-        () => `${sizeType}`
-    return {
-        names: names || [],
-        size: {amount, sizeType, asString: amountString},
-        asString: () => `${namesFor(names)}${amountString()}`
-    }
-}
-
-export function gridLinesToString(gridLines: Array<GridLine>): string {
-    return gridLines.map(line => line.asString()).join(" ")
-}
-
-export function repeat(times: number, gridLine: GridLine): Array<GridLine> {
-    const gridLines: Array<GridLine> = []
-    for(let i = 0; i < times; ++i) {
-        gridLines.push(gridLine)
-    }
-    return gridLines
-}
-
-export function pixelsFor(pixels: number, names?: Array<string>): GridLine {
-    return gridLineFor(names, pixels, TrackSizeType.Pixel)
-}
-
-export function percentageFor(percentage: number, names?: Array<string>): GridLine {
-    return gridLineFor(names, percentage, TrackSizeType.Percentage)
-}
-
-export function fractionFor(fraction: number, names?: Array<string>): GridLine {
-    return gridLineFor(names, fraction, TrackSizeType.Fraction)
-}
-
-export function autoFor(names?: Array<string>): GridLine {
-    return gridLineFor(names, undefined, TrackSizeType.Auto)
-}
+//
+// enum TrackSizeType {
+//     Pixel= 'px',
+//     Percentage = '%',
+//     Fraction = 'fr',
+//     Auto = 'auto'
+// }
+//
+// export interface GridTrack {
+//     amount?: number
+//     sizeType: TrackSizeType
+//     asString: () => string
+// }
+//
+// /**
+//  * Names for the grid line (i.e. represented in css as [name1 name2 ... nameN]
+//  */
+// export interface GridLine {
+//     names: Array<string>
+//     size: GridTrack
+//     asString: () => string
+// }
+//
+// function namesFor(names?: Array<string>): string {
+//     return names && names.length > 0 ?
+//         `[${names.join(" ")}] ` :
+//         ""
+// }
+//
+// function gridLineFor(names: Array<string> | undefined, amount: number | undefined, sizeType: TrackSizeType,): GridLine {
+//     const amountString = amount !== undefined ?
+//         () => `${Math.floor(amount)}${sizeType}` :
+//         () => `${sizeType}`
+//     return {
+//         names: names || [],
+//         size: {amount, sizeType, asString: amountString},
+//         asString: () => `${namesFor(names)}${amountString()}`
+//     }
+// }
+//
+// export function gridLinesToString(gridLines: Array<GridLine>): string {
+//     return gridLines.map(line => line.asString()).join(" ")
+// }
+//
+// export function repeat(times: number, gridLine: GridLine): Array<GridLine> {
+//     const gridLines: Array<GridLine> = []
+//     for(let i = 0; i < times; ++i) {
+//         gridLines.push(gridLine)
+//     }
+//     return gridLines
+// }
+//
+// export function pixelsFor(pixels: number, names?: Array<string>): GridLine {
+//     return gridLineFor(names, pixels, TrackSizeType.Pixel)
+// }
+//
+// export function percentageFor(percentage: number, names?: Array<string>): GridLine {
+//     return gridLineFor(names, percentage, TrackSizeType.Percentage)
+// }
+//
+// export function fractionFor(fraction: number, names?: Array<string>): GridLine {
+//     return gridLineFor(names, fraction, TrackSizeType.Fraction)
+// }
+//
+// export function autoFor(names?: Array<string>): GridLine {
+//     return gridLineFor(names, undefined, TrackSizeType.Auto)
+// }

@@ -1,7 +1,8 @@
 import React from 'react';
-import {fractionFor, Grid, GridCell, repeat, useGridCell} from "./Grid";
+import {Grid, GridCell, useGridCell} from "./Grid";
 import {Align, FlexContainer, FlexDirection, FlexItem, JustifyContent, useFlexItem} from "./Flex";
 import {useWindowDimensions} from "./WindowDimensionsProvider";
+import {gridTrackTemplateBuilder, withFraction, withGridTrack} from "./gridTemplateParser";
 
 function App() {
     // return (
@@ -61,7 +62,10 @@ function App() {
             <GridCell row={1} column={3} rowsSpanned={3}>
                 <Grid
                     dimensionsSupplier={useGridCell}
-                    gridTemplateColumns={repeat(3, fractionFor(1, ['last one']))}
+                    gridTemplateColumns={gridTrackTemplateBuilder()
+                        .repeatFor(3, withGridTrack(withFraction(1), 'last one'))
+                        .build()}
+                    // gridTemplateColumns={repeat(3, fractionFor(1, ['last one']))}
                     columnGap={5}
                     rowGap={5}
                 >

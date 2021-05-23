@@ -4,7 +4,7 @@ import {
     withLineNames,
     withPixels,
     TrackSizeType,
-    withGridTrack, withPercentage
+    withGridTrack, withPercentage, withFraction
 } from "./gridTemplateParser";
 
 test('should be able to build a simple grid template with one auto track and no line names', () => {
@@ -57,7 +57,7 @@ test('should be able to build a grid template with named lines and end line', ()
 test('should be able to build a grid template with named lines, repeat, and end line', () => {
     const template = gridTrackTemplateBuilder()
         .addTrack(withAuto(), withLineNames('one', 'two'))
-        .repeat(3, withGridTrack(withPercentage(10), 'size', '10size'))
+        .repeatFor(3, withGridTrack(withPercentage(10), 'size', '10size'))
         .build(withLineNames('end'))
     expect(template.lastLineNames?.names).toEqual(['end'])
     expect(template.trackList.length).toBe(4)
@@ -70,4 +70,46 @@ test('should be able to build a grid template with named lines, repeat, and end 
         expect(template.trackList[i].track.sizeType).toEqual(TrackSizeType.Percentage)
     }
     expect(template.asString()).toEqual('[one two] auto [size 10size] 10% [size 10size] 10% [size 10size] 10% [end]')
+})
+
+test('should be able to calculate the track sizes', () => {
+    const template = gridTrackTemplateBuilder()
+        .addTrack(withFraction(1), withLineNames('one', 'two'))
+        .addTrack(withPixels(10), withLineNames('size', '10size'))
+        .build(withLineNames('end'))
+
+    const dimensions = template.trackSizes(100)
+    expect(dimensions.length).toEqual(template.trackList.length)
+    expect(dimensions[0]).toBe(90)
+    expect(dimensions[1]).toBe(10)
+})
+
+test('should be able to calculate the track sizes for multiple fractions', () => {
+    const template = gridTrackTemplateBuilder()
+        .addTrack(withFraction(1), withLineNames('one', 'two'))
+        .addTrack(withPixels(10), withLineNames('size', '10size'))
+        .addTrack(withFraction(2), withLineNames('three', 'four'))
+        .build(withLineNames('end'))
+
+    const dimensions = template.trackSizes(100)
+    expect(dimensions.length).toEqual(template.trackList.length)
+    expect(dimensions[0]).toBe(30)
+    expect(dimensions[1]).toBe(10)
+    expect(dimensions[2]).toBe(60)
+})
+
+test('should be able to calculate the track sizes for multiple fractions and percentages', () => {
+    const template = gridTrackTemplateBuilder()
+        .addTrack(withFraction(1), withLineNames('one', 'two'))
+        .addTrack(withPixels(10), withLineNames('size', '10size'))
+        .addTrack(withFraction(2), withLineNames('three', 'four'))
+        .addTrack(withPercentage(30), withLineNames('percent30'))
+        .build(withLineNames('end'))
+
+    const dimensions = template.trackSizes(100)
+    expect(dimensions.length).toEqual(template.trackList.length)
+    expect(dimensions[0]).toBe(20)
+    expect(dimensions[1]).toBe(10)
+    expect(dimensions[2]).toBe(40)
+    expect(dimensions[3]).toBe(30)
 })

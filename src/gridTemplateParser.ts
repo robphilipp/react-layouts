@@ -5,10 +5,10 @@ export enum TrackSizeType {
     Auto = 'auto'
 }
 
-const PixelRegex = /[0-9]+px/i
-const PercentageRegex = /[0-9]+%/
-const FractionRegex = /[0-9]+fr/
-const AutoRegex = /auto/i
+// const PixelRegex = /[0-9]+px/i
+// const PercentageRegex = /[0-9]+%/
+// const FractionRegex = /[0-9]+fr/
+// const AutoRegex = /auto/i
 
 export interface GridTrackSize {
     amount?: number
@@ -24,28 +24,35 @@ export interface GridLineNames {
     asString: () => string
 }
 
-interface GridTrack {
+export interface GridTrack {
     lineNames?: GridLineNames
     track: GridTrackSize
 }
 
-interface GridTrackTemplate {
+export interface GridTrackTemplate {
     trackList: Array<GridTrack>
     lastLineNames?: GridLineNames
+    trackSizes: (containerDimension: number) => Array<number>
     asString: () => string
 }
+
+export const emptyGridTrackTemplate = (): GridTrackTemplate => ({
+    trackList: [],
+    trackSizes: () => [],
+    asString: () => ""
+})
 
 export interface GridTrackTemplateBuilder {
     template: GridTrackTemplate
     addTrack: (track: GridTrackSize, lineNames?: GridLineNames) => GridTrackTemplateBuilder
-    repeat: (times: number, ...track: Array<GridTrack>) => GridTrackTemplateBuilder
+    repeatFor: (times: number, ...track: Array<GridTrack>) => GridTrackTemplateBuilder
     build: (lastLineNames?: GridLineNames) => GridTrackTemplate
 }
 
 export function gridTrackTemplateBuilder(gridTrackTemplate?: GridTrackTemplate): GridTrackTemplateBuilder {
     const template = gridTrackTemplate ?
         Object.assign({}, gridTrackTemplate) :
-        {trackList: [], asString: () => ''}
+        emptyGridTrackTemplate()
 
     function addTrackTo(template: GridTrackTemplate, track: GridTrackSize, lineNames?: GridLineNames): GridTrackTemplateBuilder {
         template.trackList.push({lineNames, track})
@@ -60,10 +67,64 @@ export function gridTrackTemplateBuilder(gridTrackTemplate?: GridTrackTemplate):
         return updateBuilder(template)
     }
 
+    // todo doesn't yet account for 'auto'
+    /**
+     * Calculates the track size (does not account for the gaps, spans, etc. Those are applied in
+     * the grid cell size calculation
+     * @param template
+     * @param containerSize
+     */
+    function trackSizesFor(template: GridTrackTemplate, containerSize: number): Array<number> {
+        // first set all the fixed and percentage sizes
+        const dimensions = template.trackList.map(track => {
+            switch(track.track.sizeType) {
+                case TrackSizeType.Pixel:
+                    return track.track.amount || 0
+                case TrackSizeType.Percentage:
+                    return Math.floor(containerSize * (track.track.amount || 0) / 100)
+                case TrackSizeType.Fraction:
+                    return -(track.track.amount || 0)
+                case TrackSizeType.Auto:
+                default:
+                    return NaN
+            }
+        })
+
+        // apportion the fractional sizes
+        const usedSpace = dimensions
+            .filter(size => size > 0 && !isNaN(size))
+            .reduce((a, b) => a + b)
+
+        if (usedSpace >= containerSize) {
+            // when all the space is used up, then set the fractional sizes to 0
+            dimensions.forEach((size, index, dims) => {
+                if (size < 0 || isNaN(size)) {
+                    dims[index] = 0
+                }
+            })
+        } else {
+            // there is space available to apportion to the remaining tracks
+            // 1. calculate the total fraction number (recall that the fractional numbers are negative)
+            const totalFraction = dimensions
+                .filter(size => size < 0)
+                .map(size => -size)
+                .reduce((a, b) => a + b)
+            // 2. apportion the fractions to the remaining space
+            dimensions.forEach((size, index, dims) => {
+                if (size < 0) {
+                    dims[index] = Math.floor((-size / totalFraction) * (containerSize - usedSpace))
+                }
+            })
+        }
+
+        return dimensions
+    }
+
     function build(template: GridTrackTemplate, lastLineNames?: GridLineNames): GridTrackTemplate {
         return {
             trackList: template.trackList,
             lastLineNames,
+            trackSizes: (containerSize: number) => trackSizesFor(template, containerSize),
             asString: () => gridTrackTemplateAsString(template.trackList, lastLineNames)
         }
     }
@@ -78,8 +139,8 @@ export function gridTrackTemplateBuilder(gridTrackTemplate?: GridTrackTemplate):
         return {
             template,
             addTrack: (track: GridTrackSize, lineNames?: GridLineNames) => addTrackTo(template, track, lineNames),
-            repeat: (times: number, ...track: Array<GridTrack>) => repeatFor(template, times, ...track),
-            build: (lastLineNames?: GridLineNames) => build(template, lastLineNames)
+            repeatFor: (times: number, ...track: Array<GridTrack>) => repeatFor(template, times, ...track),
+            build: (lastLineNames?: GridLineNames) => build(template, lastLineNames),
         }
     }
 

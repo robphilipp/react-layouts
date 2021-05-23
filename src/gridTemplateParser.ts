@@ -55,7 +55,8 @@ export const emptyGridTrackTemplate = (): GridTrackTemplate => ({
 })
 
 /**
- * Interface defining the grid-template-row or grid-template-column builder.
+ * Interface defining the grid-template-row or grid-template-column builder. You can create the
+ * builder with the [gridTrackTemplateBuilder](#gridTrackTemplateBuilder) function.
  */
 export interface GridTrackTemplateBuilder {
     readonly template: GridTrackTemplate
@@ -113,7 +114,6 @@ export function gridTrackTemplateBuilder(gridTrackTemplate?: GridTrackTemplate):
         const usedSpace = totalGaps + dimensions
             .filter(size => size > 0 && !isNaN(size))
             .reduce((a, b) => a + b, 0)
-        // console.log("container-size", containerSize, "used-space", usedSpace, "dimensions", dimensions)
 
         if (usedSpace >= containerSize) {
             // when all the space is used up, then set the fractional sizes to 0
@@ -129,18 +129,14 @@ export function gridTrackTemplateBuilder(gridTrackTemplate?: GridTrackTemplate):
                 .filter(size => size < 0)
                 .map(size => -size)
                 .reduce((a, b) => a + b, 0)
-            // console.log("total-fraction", totalFraction)
             // 2. apportion the fractions to the remaining space
             dimensions.forEach((size, index, dims) => {
                 if (size < 0) {
                     dims[index] = (-size / totalFraction) * (containerSize - usedSpace)
-                    // dims[index] = Math.floor((-size / totalFraction) * (containerSize - usedSpace))
-                    // console.log("apportioned-size", dimensions[index])
                 }
             })
         }
 
-        // console.log("dimensions", dimensions)
         return dimensions
     }
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useLayoutEffect, useRef} from 'react';
 import {Grid, GridCell, useGridCell} from "./Grid";
 import {Align, FlexContainer, FlexDirection, FlexItem, JustifyContent, useFlexItem} from "./Flex";
 import {useWindowDimensions} from "./WindowDimensionsProvider";
@@ -113,9 +113,36 @@ function CellContents(): JSX.Element {
                 <div>{row}, {column}</div>
                 <div style={{fontSize: '0.7em', color: 'grey'}}>{width} x {height}</div>
                 <div style={{fontSize: '0.7em', color: 'grey'}}>({rowsSpanned} x {columnsSpanned})</div>
+                <Canvas width={width/2} height={height/2}/>
             </div>
         </div>
     )
+}
+
+interface CanvasProps {
+    width: number
+    height: number
+}
+
+function Canvas(props: CanvasProps): JSX.Element {
+    const {width, height} = props;
+    const canvasRef = useRef<HTMLCanvasElement>(null)
+
+    useLayoutEffect(
+        () => {
+            if (canvasRef.current !== null) {
+                const context = canvasRef.current.getContext('2d')
+                if (context) {
+                    context.fillStyle = 'dodgerblue'
+                    context.rect(10, 10, width - 10, height - 10)
+                    context.fill()
+                }
+            }
+        },
+        [width, height]
+    )
+
+    return <canvas ref={canvasRef} width={width} height={height}/>
 }
 
 function BoxContents(props: { name: string }): JSX.Element {

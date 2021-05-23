@@ -38,6 +38,7 @@ interface GridTrackTemplate {
 export interface GridTrackTemplateBuilder {
     template: GridTrackTemplate
     addTrack: (track: GridTrackSize, lineNames?: GridLineNames) => GridTrackTemplateBuilder
+    repeat: (times: number, ...track: Array<GridTrack>) => GridTrackTemplateBuilder
     build: (lastLineNames?: GridLineNames) => GridTrackTemplate
 }
 
@@ -48,11 +49,15 @@ export function gridTrackTemplateBuilder(gridTrackTemplate?: GridTrackTemplate):
 
     function addTrackTo(template: GridTrackTemplate, track: GridTrackSize, lineNames?: GridLineNames): GridTrackTemplateBuilder {
         template.trackList.push({lineNames, track})
-        return {
-            template,
-            addTrack: (track: GridTrackSize, lineNames?: GridLineNames) => addTrackTo(template, track, lineNames),
-            build: (lastLineNames?: GridLineNames) => build(template, lastLineNames)
+        return updateBuilder(template)
+    }
+
+    // todo doesn't yet support 'auto-fill' or 'auto-fit' from the 'times' parameter
+    function repeatFor(template: GridTrackTemplate, times: number, ...track: Array<GridTrack>): GridTrackTemplateBuilder {
+        for (let i = 0; i < times; ++i) {
+            template.trackList.push(...track)
         }
+        return updateBuilder(template)
     }
 
     function build(template: GridTrackTemplate, lastLineNames?: GridLineNames): GridTrackTemplate {
@@ -63,30 +68,42 @@ export function gridTrackTemplateBuilder(gridTrackTemplate?: GridTrackTemplate):
         }
     }
 
-    return {
-        template,
-        addTrack: (track: GridTrackSize, lineNames?: GridLineNames) => addTrackTo(template, track, lineNames),
-        build: (lastLineNames?: GridLineNames) => build(template, lastLineNames)
+    /**
+     * Private function that update the grid track template builder with the new grid track template,
+     * and updates the public functions for the builder
+     * @param template The update grid track template
+     * @return An updated grid-track-template builder
+     */
+    function updateBuilder(template: GridTrackTemplate): GridTrackTemplateBuilder {
+        return {
+            template,
+            addTrack: (track: GridTrackSize, lineNames?: GridLineNames) => addTrackTo(template, track, lineNames),
+            repeat: (times: number, ...track: Array<GridTrack>) => repeatFor(template, times, ...track),
+            build: (lastLineNames?: GridLineNames) => build(template, lastLineNames)
+        }
     }
+
+    return updateBuilder(template)
 }
 
 export function withLineNames(...names: string[]): GridLineNames {
-    return {
-        names,
-        asString: namesFor
-    }
+    return {names, asString: namesFor}
 }
 
-export function gridLinesToString(gridLines: Array<GridLineNames>): string {
-    return gridLines.map(line => line.asString()).join(" ")
-}
+// export function gridLinesToString(gridLines: Array<GridLineNames>): string {
+//     return gridLines.map(line => line.asString()).join(" ")
+// }
+//
+// export function repeat(times: number, gridLine: GridLineNames): Array<GridLineNames> {
+//     const gridLines: Array<GridLineNames> = []
+//     for(let i = 0; i < times; ++i) {
+//         gridLines.push(gridLine)
+//     }
+//     return gridLines
+// }
 
-export function repeat(times: number, gridLine: GridLineNames): Array<GridLineNames> {
-    const gridLines: Array<GridLineNames> = []
-    for(let i = 0; i < times; ++i) {
-        gridLines.push(gridLine)
-    }
-    return gridLines
+export function withGridTrack(gridTrackSize: GridTrackSize, ...names: string[]): GridTrack {
+    return {lineNames: withLineNames(...names), track: gridTrackSize}
 }
 
 export function withPixels(pixels: number): GridTrackSize {

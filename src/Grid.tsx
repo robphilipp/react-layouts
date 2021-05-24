@@ -4,8 +4,10 @@ import {Dimensions} from "./dimensions";
 import {
     cellDimensionFor,
     emptyGridTrackTemplate,
+    gridLineNamesFor,
     GridTrackTemplate,
-    gridTrackTemplateBuilder, trackIndexFor,
+    gridTrackTemplateBuilder,
+    trackIndexFor,
     withFraction,
     withGridTrack
 } from "./gridTemplateParser";
@@ -118,7 +120,6 @@ export function Grid(props: Props): JSX.Element {
         return <></>
     }
 
-    // todo we only want to recalculate this when the templates weren't specified
     const {numRows, numColumns} = gridDimensions
 
     if (numRows <= 0 && gridTemplateRows === undefined) {
@@ -203,10 +204,8 @@ const initialCellValues: UseGridCellValues = {
 const GridCellContext = createContext<UseGridCellValues>(initialCellValues)
 
 interface CellProps {
-    // todo change type to `number | string` to support line-names
     column: number | string
     columnsSpanned?: number
-    // todo change type to `number | string` to support line-names
     row: number | string
     rowsSpanned?: number
     // additional styles
@@ -245,23 +244,23 @@ export function GridCell(props: CellProps): JSX.Element {
 
     // find the column and row indexes (the row or column could have been specified as a grid-line name
     const columnIndex = trackIndexFor(column, gridTemplateColumns)
-    const rowIndex = trackIndexFor(row, gridTemplateRows)
     if (columnIndex === 0 && typeof column === 'string') {
-        const lineNames = gridTemplateColumns.trackList
-            .map(track => track.lineNames?.names || [])
-            .reduce((prev, accum) => {
-                prev.filter(name => !accum.includes(name)).forEach(name => accum.push(name))
-                return accum
-            }, [])
-            .join(", ")
+        const lineNames = gridLineNamesFor(gridTemplateColumns).join(", ")
         throw new Error(
             `<GridCell/> line-name for specified column identifier not found in any tracks; column: "${column}"; line-names: [${lineNames}]`
         )
     }
+    const rowIndex = trackIndexFor(row, gridTemplateRows)
+    if (rowIndex === 0 && typeof row === 'string') {
+        const lineNames = gridLineNamesFor(gridTemplateRows).join(", ")
+        throw new Error(
+            `<GridCell/> line-name for specified row identifier not found in any tracks; row: "${row}"; line-names: [${lineNames}]`
+        )
+    }
 
+    // ensure that the row index and column index are within valid bounds
     const numRows = gridTemplateRows.trackList.length
     const numColumns = gridTemplateColumns.trackList.length
-
     if (rowIndex < 1 || rowIndex > numRows) {
         throw new Error(
             `<GridCell/> row must be greater than 1 and less than the number of rows; number rows: ${numRows}; row: ${row}`
@@ -283,6 +282,7 @@ export function GridCell(props: CellProps): JSX.Element {
         )
     }
 
+    // update the style when in debug mode
     const debug: CSSProperties = showGrid ?
         {borderStyle: 'dashed', borderWidth: 1, borderColor: 'lightgrey'} :
         {}

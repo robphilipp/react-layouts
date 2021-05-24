@@ -2,7 +2,7 @@ export enum TrackSizeType {
     Pixel= 'px',
     Percentage = '%',
     Fraction = 'fr',
-    Auto = 'auto'
+    // Auto = 'auto'
 }
 
 // const PixelRegex = /[0-9]+px/i
@@ -65,10 +65,11 @@ export interface GridTrackTemplateBuilder {
     build: (lastLineNames?: GridLineNames) => GridTrackTemplate
 }
 
-export function gridTrackTemplateBuilder(gridTrackTemplate?: GridTrackTemplate): GridTrackTemplateBuilder {
-    const template = gridTrackTemplate ?
-        Object.assign({}, gridTrackTemplate) :
-        emptyGridTrackTemplate()
+/**
+ * Creates a new grid
+ */
+export function gridTrackTemplateBuilder(): GridTrackTemplateBuilder {
+    const template = emptyGridTrackTemplate()
 
     function addTrackTo(template: GridTrackTemplate, track: GridTrackSize, lineNames?: GridLineNames): GridTrackTemplateBuilder {
         template.trackList.push({lineNames, track})
@@ -102,7 +103,7 @@ export function gridTrackTemplateBuilder(gridTrackTemplate?: GridTrackTemplate):
                     return Math.floor(containerSize * (track.track.amount || 0) / 100)
                 case TrackSizeType.Fraction:
                     return -(track.track.amount || 0)
-                case TrackSizeType.Auto:
+                // case TrackSizeType.Auto:
                 default:
                     return NaN
             }
@@ -187,9 +188,9 @@ export function withFraction(fraction: number): GridTrackSize {
     return gridTrackSizeFor(TrackSizeType.Fraction, fraction)
 }
 
-export function withAuto(): GridTrackSize {
-    return gridTrackSizeFor(TrackSizeType.Auto)
-}
+// export function withAuto(): GridTrackSize {
+//     return gridTrackSizeFor(TrackSizeType.Auto)
+// }
 
 function gridTrackSizeFor(sizeType: TrackSizeType, amount?: number): GridTrackSize {
     const amountString = amount !== undefined ?
@@ -257,5 +258,17 @@ export function trackIndexFor(identifier: number | string, template: GridTrackTe
         return identifier
     }
     return template.trackList.findIndex(track => track.lineNames?.names.includes(identifier)) + 1
+}
+
+export function gridLineNamesFor(template: GridTrackTemplate): Array<string> {
+    return Array.from(new Set(template.trackList.flatMap(track => track.lineNames?.names || [])))
+    // const lineNames = template.trackList
+    //     .map(track => track.lineNames?.names || [])
+    //     .reduce((prev, accum) => {
+    //         prev.filter(name => !accum.includes(name)).forEach(name => accum.push(name))
+    //         return accum
+    //     }, [])
+    //     .join(", ")
+    //
 }
 

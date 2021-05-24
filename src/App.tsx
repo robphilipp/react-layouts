@@ -58,7 +58,7 @@ function App() {
             columnGap={5}
             showGrid={false}
         >
-            <GridCell row={1} column={1}>
+            <GridCell row={1} column='nav'>
                 <CellContents/>
             </GridCell>
             <GridCell row={1} column={2}>
@@ -91,13 +91,13 @@ function App() {
                 </Grid>
                 {/*<CellContents/>*/}
             </GridCell>
-            <GridCell row={2} column={1}>
+            <GridCell row={2} column='nav'>
                 <CellContents/>
             </GridCell>
             <GridCell row={2} column={2}>
                 <CellContents/>
             </GridCell>
-            <GridCell row={3} column={1} columnsSpanned={2}>
+            <GridCell row={3} column='nav' columnsSpanned={2}>
                 <CellContents/>
             </GridCell>
         </Grid>

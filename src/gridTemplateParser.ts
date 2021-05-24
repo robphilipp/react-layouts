@@ -244,3 +244,18 @@ export function cellDimensionFor(containerSize: number, dimension: number, gap: 
     return Math.floor(spannedTrackSize + (spanned - 1) * gap)
 }
 
+/**
+ * Attempts to resolve the row or column index for the specified index or grid line-name. When the
+ * identifier is a number, then that is returned as the index (a simple passthrough). When the identifier
+ * is a string, then the attempts to find the index that holds the name, and uses that.
+ * @param identifier The identifier is either the row or column index, or a grid line-name
+ * @param template The css-grid track template represented by the [GridTrackTemplate](#GridTrackTemplate)
+ * @return The row or column number in the grid, or 0 if not found
+ */
+export function trackIndexFor(identifier: number | string, template: GridTrackTemplate): number {
+    if (typeof identifier === 'number') {
+        return identifier
+    }
+    return template.trackList.findIndex(track => track.lineNames?.names.includes(identifier)) + 1
+}
+

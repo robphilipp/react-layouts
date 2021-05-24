@@ -5,7 +5,7 @@ import {
     cellDimensionFor,
     emptyGridTrackTemplate,
     GridTrackTemplate,
-    gridTrackTemplateBuilder,
+    gridTrackTemplateBuilder, trackIndexFor,
     withFraction,
     withGridTrack
 } from "./gridTemplateParser";
@@ -88,8 +88,8 @@ export function Grid(props: Props): JSX.Element {
         (): GridDimensions => {
             if (!Array.isArray(children)) {
                 return {
-                    numRows: (children.props as CellProps).row,
-                    numColumns: (children.props as CellProps).column
+                    numRows: trackIndexFor((children.props as CellProps).row, gridTemplateRows || emptyGridTrackTemplate()),
+                    numColumns: trackIndexFor((children.props as CellProps).column, gridTemplateColumns || emptyGridTrackTemplate())
                 }
             }
             return children
@@ -203,9 +203,11 @@ const initialCellValues: UseGridCellValues = {
 const GridCellContext = createContext<UseGridCellValues>(initialCellValues)
 
 interface CellProps {
-    column: number
+    // todo change type to `number | string` to support line-names
+    column: number | string
     columnsSpanned?: number
-    row: number
+    // todo change type to `number | string` to support line-names
+    row: number | string
     rowsSpanned?: number
     // additional styles
     styles?: CSSProperties
@@ -241,10 +243,26 @@ export function GridCell(props: CellProps): JSX.Element {
         showGrid
     } = useContext<UseGridValues>(GridContext)
 
+    // find the column and row indexes (the row or column could have been specified as a grid-line name
+    const columnIndex = trackIndexFor(column, gridTemplateColumns)
+    const rowIndex = trackIndexFor(row, gridTemplateRows)
+    if (columnIndex === 0 && typeof column === 'string') {
+        const lineNames = gridTemplateColumns.trackList
+            .map(track => track.lineNames?.names || [])
+            .reduce((prev, accum) => {
+                prev.filter(name => !accum.includes(name)).forEach(name => accum.push(name))
+                return accum
+            }, [])
+            .join(", ")
+        throw new Error(
+            `<GridCell/> line-name for specified column identifier not found in any tracks; column: "${column}"; line-names: [${lineNames}]`
+        )
+    }
+
     const numRows = gridTemplateRows.trackList.length
     const numColumns = gridTemplateColumns.trackList.length
 
-    if (row < 1 || row > numRows) {
+    if (rowIndex < 1 || rowIndex > numRows) {
         throw new Error(
             `<GridCell/> row must be greater than 1 and less than the number of rows; number rows: ${numRows}; row: ${row}`
         )
@@ -254,7 +272,7 @@ export function GridCell(props: CellProps): JSX.Element {
             `The number of rows spanned by this <GridCell/> greater than 1; rows spanned: ${rowsSpanned}`
         )
     }
-    if (column < 1 || column > numColumns) {
+    if (columnIndex < 1 || columnIndex > numColumns) {
         throw new Error(
             `<GridCell/> column must be greater than 1 and less than the number of columns; number columns: ${numColumns}; column: ${column}`
         )
@@ -268,8 +286,8 @@ export function GridCell(props: CellProps): JSX.Element {
     const debug: CSSProperties = showGrid ?
         {borderStyle: 'dashed', borderWidth: 1, borderColor: 'lightgrey'} :
         {}
-    const cellWidth = cellDimensionFor(width, column, columnGap, columnsSpanned, gridTemplateColumns)
-    const cellHeight = cellDimensionFor(height, row, rowGap, rowsSpanned, gridTemplateRows)
+    const cellWidth = cellDimensionFor(width, columnIndex, columnGap, columnsSpanned, gridTemplateColumns)
+    const cellHeight = cellDimensionFor(height, rowIndex, rowGap, rowsSpanned, gridTemplateRows)
     // console.log(
     //     "cell (r, c)", row, column,
     //     "dims (w, h)", cellWidth, cellHeight,
@@ -280,7 +298,8 @@ export function GridCell(props: CellProps): JSX.Element {
         <GridCellContext.Provider value={{
             width: cellWidth,
             height: cellHeight,
-            row, column,
+            row: rowIndex,
+            column: columnIndex,
             rowsSpanned, columnsSpanned
         }}>
             <div
@@ -288,9 +307,9 @@ export function GridCell(props: CellProps): JSX.Element {
                     height: cellHeight,
                     width: cellWidth,
                     gridColumnStart: column,
-                    gridColumnEnd: Math.min(column + columnsSpanned, numColumns + 1),
+                    gridColumnEnd: Math.min(columnIndex + columnsSpanned, numColumns + 1),
                     gridRowStart: row,
-                    gridRowEnd: Math.min(row + rowsSpanned, numRows + 1),
+                    gridRowEnd: Math.min(rowIndex + rowsSpanned, numRows + 1),
                     ...debug,
                     ...styles
                 }}

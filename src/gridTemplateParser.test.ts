@@ -4,7 +4,7 @@ import {
     withLineNames,
     withPixels,
     TrackSizeType,
-    withGridTrack, withPercentage, withFraction, cellDimensionFor
+    withGridTrack, withPercentage, withFraction, cellDimensionFor, trackIndexFor
 } from "./gridTemplateParser";
 
 test('should be able to build a simple grid template with one auto track and no line names', () => {
@@ -155,4 +155,12 @@ test('should calculate the cell size based on the grid template, gap, and contai
     expect(size).toBe(400 - gap)
     size = cellDimensionFor(containerSize, 3, gap, 1, template)
     expect(size).toBe(400 - gap)
+})
+
+test('should be able to resolve the index based on the grid line-name', () => {
+    const template = gridTrackTemplateBuilder()
+        .addTrack(withPixels(200), withLineNames('nav'))
+        .repeatFor(2, withGridTrack(withFraction(1), 'one', 'two'))
+        .build(withLineNames('end'))
+    expect(trackIndexFor('nav', template)).toBe(1)
 })

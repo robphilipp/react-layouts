@@ -10,7 +10,7 @@ import {
     trackIndexFor,
     withFraction,
     withGridTrack
-} from "./gridTemplateParser";
+} from "./gridTemplates";
 
 interface UseGridValues {
     width: number

@@ -2,7 +2,7 @@ import React, {useLayoutEffect, useRef} from 'react';
 import {Grid, GridCell, useGridCell} from "./Grid";
 import {useFlexItem} from "./Flex";
 import {useWindowDimensions} from "./WindowDimensionsProvider";
-import {gridTrackTemplateBuilder, withFraction, withGridTrack, withLineNames, withPixels} from "./gridTemplateParser";
+import {gridTrackTemplateBuilder, withFraction, withGridTrack, withLineNames, withPixels} from "./gridTemplates";
 
 function App() {
     // return (

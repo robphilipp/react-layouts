@@ -71,12 +71,26 @@ export interface GridTrackTemplateBuilder {
 export function gridTrackTemplateBuilder(): GridTrackTemplateBuilder {
     const template = emptyGridTrackTemplate()
 
+    /**
+     * Adds a track to the grid-template and the line-names located to the left of the track
+     * @param template The grid-template-row or grid-template-column
+     * @param track The array of grid-tracks
+     * @param lineNames The (optional) line names located to the left of the track
+     * @return A grid-track-template-builder object with the updated tracks based on the repeat function
+     */
     function addTrackTo(template: GridTrackTemplate, track: GridTrackSize, lineNames?: GridLineNames): GridTrackTemplateBuilder {
         template.trackList.push({lineNames, track})
         return updateBuilder(template)
     }
 
     // todo doesn't yet support 'auto-fill' or 'auto-fit' from the 'times' parameter
+    /**
+     * Repeats the array of grid tracks by the specified number of times.
+     * @param template The grid-template-row or grid-template-column
+     * @param times The number of times to repeat the track
+     * @param track The array of grid-tracks
+     * @return A grid-track-template-builder object with the updated tracks based on the repeat function
+     */
     function repeatFor(template: GridTrackTemplate, times: number, ...track: Array<GridTrack>): GridTrackTemplateBuilder {
         for (let i = 0; i < times; ++i) {
             template.trackList.push(...track)
@@ -88,10 +102,11 @@ export function gridTrackTemplateBuilder(): GridTrackTemplateBuilder {
     /**
      * Calculates the track size (does not account for the gaps, spans, etc. Those are applied in
      * the grid cell size calculation
-     * @param template
-     * @param containerSize
-     * @param gap
-     * @return
+     * @param template The grid track template defining the grid layout
+     * @param containerSize The container size for either the row of the column, depending on whether the
+     * grid track template represents a grid-template-rows or grid-template-columns, respectively
+     * @param gap The gap between the rows or columns
+     * @return An array of track sizes that have been adjusted for the gap
      */
     function trackSizesFor(template: GridTrackTemplate, containerSize: number, gap: number): Array<number> {
         // first set all the fixed and percentage sizes
@@ -141,6 +156,14 @@ export function gridTrackTemplateBuilder(): GridTrackTemplateBuilder {
         return dimensions
     }
 
+    /**
+     * Builds the grid-template-rows or grid-template-columns
+     * @param template The grid-template-rows or grid-template-columns template
+     * @param lastLineNames The line-names for the last grid line (i.e. the one located to the right
+     * of the last grid-track).
+     * @return the grid-template-rows or grid-template-columns with the functions to get the track
+     * sizes, and convert the template to a CSS string
+     */
     function build(template: GridTrackTemplate, lastLineNames?: GridLineNames): GridTrackTemplate {
         return {
             trackList: template.trackList,
@@ -210,6 +233,12 @@ function namesFor(names?: Array<string>): string {
         ""
 }
 
+/**
+ * Converts the grid-template-rows or grid-template-columns into a CSS string
+ * @param gridTrackList A list of grid tracks
+ * @param lastLineNames A list of grid line-names
+ * @return the CSS representation of the grid-template-rows or grid-templage-columns
+ */
 function gridTrackTemplateAsString(gridTrackList: Array<GridTrack>, lastLineNames?: GridLineNames): string {
     function amountString(sizeType: TrackSizeType, amount?: number): string {
         return amount !== undefined ? `${Math.floor(amount)}${sizeType}` : sizeType.toString()
@@ -260,15 +289,12 @@ export function trackIndexFor(identifier: number | string, template: GridTrackTe
     return template.trackList.findIndex(track => track.lineNames?.names.includes(identifier)) + 1
 }
 
+/**
+ * Returns an array that holds the grid line-names for the grid-template-rows or grid-template-columns
+ * @param template The grid-template-row or grid-template-column
+ * @return an array that holds the grid line-names
+ */
 export function gridLineNamesFor(template: GridTrackTemplate): Array<string> {
     return Array.from(new Set(template.trackList.flatMap(track => track.lineNames?.names || [])))
-    // const lineNames = template.trackList
-    //     .map(track => track.lineNames?.names || [])
-    //     .reduce((prev, accum) => {
-    //         prev.filter(name => !accum.includes(name)).forEach(name => accum.push(name))
-    //         return accum
-    //     }, [])
-    //     .join(", ")
-    //
 }
 

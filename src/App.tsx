@@ -76,14 +76,14 @@ function App() {
             showGrid={false}
         >
             <GridCell gridAreaName='header'>
-            {/*<GridCell row={1} column={1} columnsSpanned={3}>*/}
+                {/*<GridCell row={1} column={1} columnsSpanned={3}>*/}
                 <CellContents/>
             </GridCell>
             <GridCell row={2} column={1}>
                 <CellContents/>
             </GridCell>
             <GridCell gridAreaName='main'>
-            {/*<GridCell row={2} column={2}>*/}
+                {/*<GridCell row={2} column={2}>*/}
                 <Grid
                     dimensionsSupplier={useGridCell}
                     gridTemplateColumns={gridTrackTemplateBuilder()
@@ -111,11 +111,11 @@ function App() {
                 {/*<CellContents/>*/}
             </GridCell>
             <GridCell gridAreaName='aside'>
-            {/*<GridCell row={2} column={3}>*/}
+                {/*<GridCell row={2} column={3}>*/}
                 <CellContents/>
             </GridCell>
             <GridCell gridAreaName='footer'>
-            {/*<GridCell row={3} column={1} columnsSpanned={3}>*/}
+                {/*<GridCell row={3} column={1} columnsSpanned={3}>*/}
                 <CellContents/>
             </GridCell>
         </Grid>
@@ -180,13 +180,31 @@ function App() {
 
 function CellContents(): JSX.Element {
     const {width, height, row, column, rowsSpanned, columnsSpanned} = useGridCell()
+    if (width > 130) {
+        return (
+            <div style={{height}}>
+                <div style={{backgroundColor: 'lightgrey', height: '100%'}}>
+                    <div>
+                        <span>{row}, {column}</span>
+                        <span style={{fontSize: '0.7em', color: 'grey', marginLeft: 7}}>{width} x {height}</span>
+                        <span style={{
+                            fontSize: '0.7em',
+                            color: 'grey',
+                            marginLeft: 7
+                        }}>({rowsSpanned} x {columnsSpanned})</span>
+                    </div>
+                    <Canvas width={width / 2} height={height / 3}/>
+                </div>
+            </div>
+        )
+    }
     return (
         <div style={{height}}>
             <div style={{backgroundColor: 'lightgrey', height: '100%'}}>
                 <div>{row}, {column}</div>
                 <div style={{fontSize: '0.7em', color: 'grey'}}>{width} x {height}</div>
                 <div style={{fontSize: '0.7em', color: 'grey'}}>({rowsSpanned} x {columnsSpanned})</div>
-                <Canvas width={width/2} height={height/3}/>
+                <Canvas width={width / 2} height={height / 3}/>
             </div>
         </div>
     )

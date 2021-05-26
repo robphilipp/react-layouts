@@ -11,12 +11,19 @@ import {
     withFraction,
     withGridTrack
 } from "./gridTemplates";
+import {
+    emptyGridTemplateAreas, GridArea,
+    GridTemplateAreas,
+    isGridTemplateAreasEmpty,
+    isGridTemplateAreasNonEmpty
+} from "./gridTemplateAreas";
 
 interface UseGridValues {
     width: number
     height: number
     gridTemplateRows: GridTrackTemplate
     gridTemplateColumns: GridTrackTemplate
+    gridTemplateAreas: GridTemplateAreas
     rowGap: number
     columnGap: number
     showGrid: boolean
@@ -27,6 +34,7 @@ const initialGridValues: UseGridValues = {
     height: 10,
     gridTemplateRows: emptyGridTrackTemplate(),
     gridTemplateColumns: emptyGridTrackTemplate(),
+    gridTemplateAreas: emptyGridTemplateAreas(),
     rowGap: 0,
     columnGap: 0,
     showGrid: false
@@ -45,6 +53,7 @@ export interface Props {
     dimensionsSupplier: () => Dimensions
     gridTemplateRows?: GridTrackTemplate
     gridTemplateColumns?: GridTrackTemplate
+    gridTemplateAreas?: GridTemplateAreas
     // the number pixels between rows in the grid
     rowGap?: number
     // the number pixels between columns in the grid
@@ -77,6 +86,7 @@ export function Grid(props: Props): JSX.Element {
         dimensionsSupplier,
         gridTemplateRows,
         gridTemplateColumns,
+        gridTemplateAreas = emptyGridTemplateAreas(),
         rowGap = 0,
         columnGap = 0,
         showGrid = false,
@@ -90,8 +100,8 @@ export function Grid(props: Props): JSX.Element {
         (): GridDimensions => {
             if (!Array.isArray(children)) {
                 return {
-                    numRows: trackIndexFor((children.props as CellProps).row, gridTemplateRows || emptyGridTrackTemplate()),
-                    numColumns: trackIndexFor((children.props as CellProps).column, gridTemplateColumns || emptyGridTrackTemplate())
+                    numRows: trackIndexFor((children.props as CellProps).row || 0, gridTemplateRows || emptyGridTrackTemplate()),
+                    numColumns: trackIndexFor((children.props as CellProps).column || 0, gridTemplateColumns || emptyGridTrackTemplate())
                 }
             }
             return children
@@ -169,6 +179,7 @@ export function Grid(props: Props): JSX.Element {
             width, height,
             gridTemplateRows: templateRows,
             gridTemplateColumns: templateColumns,
+            gridTemplateAreas,
             rowGap, columnGap,
             showGrid
         }}>
@@ -176,6 +187,7 @@ export function Grid(props: Props): JSX.Element {
                 display: "grid",
                 gridTemplateRows: templateRows.asString(),
                 gridTemplateColumns: templateColumns.asString(),
+                gridTemplateAreas: gridTemplateAreas.asString(),
                 minWidth: width,
                 minHeight: height,
                 rowGap,
@@ -188,13 +200,16 @@ export function Grid(props: Props): JSX.Element {
     )
 }
 
-interface UseGridCellValues {
+// interface GridCellPlacement {
+//     row: number
+//     column: number
+//     rowsSpanned: number
+//     columnsSpanned: number
+// }
+
+interface UseGridCellValues extends GridArea {
     width: number
     height: number
-    row: number
-    column: number
-    rowsSpanned: number
-    columnsSpanned: number
 }
 
 const initialCellValues: UseGridCellValues = {
@@ -204,10 +219,11 @@ const initialCellValues: UseGridCellValues = {
 const GridCellContext = createContext<UseGridCellValues>(initialCellValues)
 
 interface CellProps {
-    column: number | string
+    column?: number | string
     columnsSpanned?: number
-    row: number | string
+    row?: number | string
     rowsSpanned?: number
+    gridAreaName?: string
     // additional styles
     styles?: CSSProperties
     children: JSX.Element
@@ -228,29 +244,42 @@ interface CellProps {
 export function GridCell(props: CellProps): JSX.Element {
     const {
         column,
-        columnsSpanned = 1,
+        columnsSpanned,
         row,
-        rowsSpanned = 1,
+        rowsSpanned,
+        gridAreaName,
         styles,
         children,
     } = props
 
     const {
         width, height,
-        gridTemplateRows, gridTemplateColumns,
+        gridTemplateRows, gridTemplateColumns, gridTemplateAreas,
         rowGap, columnGap,
         showGrid
     } = useContext<UseGridValues>(GridContext)
 
+    // when the grid areas template is not empty and the gridArea was specified, then attempt to find the
+    // coordinates (row, column) and the spans that define the cell
+    const gridArea = gridCellPlacementFrom(gridTemplateAreas, gridAreaName)
+    if (gridArea === undefined && (column === undefined || row ===undefined)) {
+        throw new Error(
+            `shit`
+        )
+    }
+
+    const spannedColumns = gridArea ? (gridArea.columnsSpanned || 1) : (columnsSpanned || 1)
+    const spannedRows = gridArea ? gridArea.rowsSpanned || 1 : (rowsSpanned || 1)
+
     // find the column and row indexes (the row or column could have been specified as a grid-line name
-    const columnIndex = trackIndexFor(column, gridTemplateColumns)
+    const columnIndex = gridArea ? gridArea.column : trackIndexFor(column || 0, gridTemplateColumns)
     if (columnIndex === 0 && typeof column === 'string') {
         const lineNames = gridLineNamesFor(gridTemplateColumns).join(", ")
         throw new Error(
             `<GridCell/> line-name for specified column identifier not found in any tracks; column: "${column}"; line-names: [${lineNames}]`
         )
     }
-    const rowIndex = trackIndexFor(row, gridTemplateRows)
+    const rowIndex = gridArea ? gridArea.row : trackIndexFor(row || 0, gridTemplateRows)
     if (rowIndex === 0 && typeof row === 'string') {
         const lineNames = gridLineNamesFor(gridTemplateRows).join(", ")
         throw new Error(
@@ -266,7 +295,7 @@ export function GridCell(props: CellProps): JSX.Element {
             `<GridCell/> row must be greater than 1 and less than the number of rows; number rows: ${numRows}; row: ${row}`
         )
     }
-    if (rowsSpanned < 1) {
+    if (spannedRows < 1) {
         throw new Error(
             `The number of rows spanned by this <GridCell/> greater than 1; rows spanned: ${rowsSpanned}`
         )
@@ -276,40 +305,56 @@ export function GridCell(props: CellProps): JSX.Element {
             `<GridCell/> column must be greater than 1 and less than the number of columns; number columns: ${numColumns}; column: ${column}`
         )
     }
-    if (columnsSpanned < 1) {
+    if (spannedColumns < 1) {
         throw new Error(
             `The number of columns spanned by this <GridCell/> greater than 1; columns spanned: ${columnsSpanned}`
         )
     }
 
+    // console.log("gan", gridAreaName, "ga", gridArea, "row", rowIndex, "column", columnIndex, "row-span", spannedRows, rowsSpanned, "col-span", spannedColumns, columnsSpanned)
+
     // update the style when in debug mode
     const debug: CSSProperties = showGrid ?
         {borderStyle: 'dashed', borderWidth: 1, borderColor: 'lightgrey'} :
         {}
-    const cellWidth = cellDimensionFor(width, columnIndex, columnGap, columnsSpanned, gridTemplateColumns)
-    const cellHeight = cellDimensionFor(height, rowIndex, rowGap, rowsSpanned, gridTemplateRows)
+    const cellWidth = cellDimensionFor(width, columnIndex, columnGap, spannedColumns, gridTemplateColumns)
+    const cellHeight = cellDimensionFor(height, rowIndex, rowGap, spannedRows, gridTemplateRows)
     // console.log(
     //     "cell (r, c)", row, column,
     //     "dims (w, h)", cellWidth, cellHeight,
     //     "spanned (r, c)", rowsSpanned, columnsSpanned,
     //     "template (r, c)", gridTemplateRows.trackSizes(height, rowGap), gridTemplateColumns.trackSizes(width, columnGap)
     // )
+    const style = gridArea ?
+        {
+            gridArea: gridAreaName
+        } :
+        {
+            gridColumnStart: column,
+            gridColumnEnd: Math.min(columnIndex + spannedColumns, numColumns + 1),
+            gridRowStart: row,
+            gridRowEnd: Math.min(rowIndex + spannedRows, numRows + 1),
+        }
     return (
         <GridCellContext.Provider value={{
             width: cellWidth,
             height: cellHeight,
             row: rowIndex,
             column: columnIndex,
-            rowsSpanned, columnsSpanned
+            // rowsSpanned, columnsSpanned
+            rowsSpanned: spannedRows,
+            columnsSpanned: spannedColumns
         }}>
             <div
                 style={{
                     height: cellHeight,
                     width: cellWidth,
-                    gridColumnStart: column,
-                    gridColumnEnd: Math.min(columnIndex + columnsSpanned, numColumns + 1),
-                    gridRowStart: row,
-                    gridRowEnd: Math.min(rowIndex + rowsSpanned, numRows + 1),
+                    // gridColumnStart: column,
+                    // gridColumnEnd: Math.min(columnIndex + spannedColumns, numColumns + 1),
+                    // gridRowStart: row,
+                    // gridRowEnd: Math.min(rowIndex + spannedRows, numRows + 1),
+                    // gridArea: gridAreaName,
+                    ...style,
                     ...debug,
                     ...styles
                 }}
@@ -318,6 +363,18 @@ export function GridCell(props: CellProps): JSX.Element {
             </div>
         </GridCellContext.Provider>
     )
+}
+
+function gridCellPlacementFrom(template: GridTemplateAreas, gridAreaName?: string): GridArea | undefined {
+    // when the grid areas template is not empty and the gridArea was specified, then attempt to find the
+    // coordinates (row, column) and the spans that define the cell
+    if (isGridTemplateAreasNonEmpty(template) && gridAreaName !== undefined && gridAreaName.length > 0) {
+        const gridArea = template.gridAreas.get(gridAreaName)
+        if (gridArea !== undefined) {
+            return {...gridArea}
+        }
+    }
+    return undefined
 }
 
 /**

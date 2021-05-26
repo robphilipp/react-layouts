@@ -3,6 +3,7 @@ import {Grid, GridCell, useGridCell} from "./Grid";
 import {useFlexItem} from "./Flex";
 import {useWindowDimensions} from "./WindowDimensionsProvider";
 import {gridTrackTemplateBuilder, withFraction, withGridTrack, withLineNames, withPixels} from "./gridTemplates";
+import {gridArea, gridTemplateAreasBuilder} from "./gridTemplateAreas";
 
 function App() {
     // return (
@@ -50,21 +51,39 @@ function App() {
         <Grid
             dimensionsSupplier={useWindowDimensions}
             gridTemplateColumns={gridTrackTemplateBuilder()
-                .addTrack(withPixels(200), withLineNames('nav'))
-                .repeatFor(2, withGridTrack(withFraction(1), 'last one'))
+                .addTrack(withPixels(200))
+                .addTrack(withFraction(1))
+                .addTrack(withPixels(100))
+                // .repeatFor(2, withGridTrack(withFraction(1)))
+                .build()
+            }
+            gridTemplateRows={gridTrackTemplateBuilder()
+                .addTrack(withPixels(100))
+                .addTrack(withFraction(1))
+                .addTrack(withPixels(50))
+                .build()
+            }
+            gridTemplateAreas={gridTemplateAreasBuilder()
+                .addArea('header', gridArea(1, 1, 1, 3))
+                .addArea('sidebar', gridArea(2, 1))
+                .addArea('main', gridArea(2, 2))
+                .addArea('aside', gridArea(2, 3))
+                .addArea('footer', gridArea(3, 1, 1, 3))
                 .build()
             }
             rowGap={5}
             columnGap={5}
             showGrid={false}
         >
-            <GridCell row={1} column='nav'>
+            <GridCell gridAreaName='header'>
+            {/*<GridCell row={1} column={1} columnsSpanned={3}>*/}
                 <CellContents/>
             </GridCell>
-            <GridCell row={1} column={2}>
+            <GridCell row={2} column={1}>
                 <CellContents/>
             </GridCell>
-            <GridCell row={1} column={3} rowsSpanned={3}>
+            <GridCell gridAreaName='main'>
+            {/*<GridCell row={2} column={2}>*/}
                 <Grid
                     dimensionsSupplier={useGridCell}
                     gridTemplateColumns={gridTrackTemplateBuilder()
@@ -91,17 +110,72 @@ function App() {
                 </Grid>
                 {/*<CellContents/>*/}
             </GridCell>
-            <GridCell row={2} column='nav'>
+            <GridCell gridAreaName='aside'>
+            {/*<GridCell row={2} column={3}>*/}
                 <CellContents/>
             </GridCell>
-            <GridCell row={2} column={2}>
-                <CellContents/>
-            </GridCell>
-            <GridCell row={3} column='nav' columnsSpanned={2}>
+            <GridCell gridAreaName='footer'>
+            {/*<GridCell row={3} column={1} columnsSpanned={3}>*/}
                 <CellContents/>
             </GridCell>
         </Grid>
     )
+    // return (
+    //     <Grid
+    //         dimensionsSupplier={useWindowDimensions}
+    //         gridTemplateColumns={gridTrackTemplateBuilder()
+    //             .addTrack(withPixels(200), withLineNames('nav'))
+    //             .repeatFor(2, withGridTrack(withFraction(1), 'last one'))
+    //             .build()
+    //         }
+    //         rowGap={5}
+    //         columnGap={5}
+    //         showGrid={false}
+    //     >
+    //         <GridCell row={1} column='nav'>
+    //             <CellContents/>
+    //         </GridCell>
+    //         <GridCell row={1} column={2}>
+    //             <CellContents/>
+    //         </GridCell>
+    //         <GridCell row={1} column={3} rowsSpanned={3}>
+    //             <Grid
+    //                 dimensionsSupplier={useGridCell}
+    //                 gridTemplateColumns={gridTrackTemplateBuilder()
+    //                     .repeatFor(3, withGridTrack(withFraction(1), 'last one'))
+    //                     .build()}
+    //                 columnGap={1}
+    //                 rowGap={1}
+    //             >
+    //                 <GridCell column={1} row={1}>
+    //                     <CellContents/>
+    //                 </GridCell>
+    //                 <GridCell column={1} row={2}>
+    //                     <CellContents/>
+    //                 </GridCell>
+    //                 <GridCell column={3} row={3}>
+    //                     <CellContents/>
+    //                 </GridCell>
+    //                 <GridCell column={1} row={4}>
+    //                     <CellContents/>
+    //                 </GridCell>
+    //                 <GridCell column={2} row={1} rowsSpanned={4}>
+    //                     <CellContents/>
+    //                 </GridCell>
+    //             </Grid>
+    //             {/*<CellContents/>*/}
+    //         </GridCell>
+    //         <GridCell row={2} column='nav'>
+    //             <CellContents/>
+    //         </GridCell>
+    //         <GridCell row={2} column={2}>
+    //             <CellContents/>
+    //         </GridCell>
+    //         <GridCell row={3} column='nav' columnsSpanned={2}>
+    //             <CellContents/>
+    //         </GridCell>
+    //     </Grid>
+    // )
 }
 
 function CellContents(): JSX.Element {

@@ -1,8 +1,8 @@
-interface GridArea {
+export interface GridArea {
     row: number
     column: number
-    spannedRows?: number
-    spannedColumns?: number
+    rowsSpanned?: number
+    columnsSpanned?: number
 }
 
 export interface GridTemplateAreas {
@@ -10,10 +10,18 @@ export interface GridTemplateAreas {
     asString: () => string
 }
 
-const emptyGridTemplateAreas = (): GridTemplateAreas => ({
+export const emptyGridTemplateAreas = (): GridTemplateAreas => ({
     gridAreas: new Map(),
     asString: () => ""
 })
+
+export function isGridTemplateAreasEmpty(template: GridTemplateAreas): boolean {
+    return template.gridAreas.size === 0 && template.asString() === ""
+}
+
+export function isGridTemplateAreasNonEmpty(template: GridTemplateAreas): boolean {
+    return !isGridTemplateAreasEmpty(template)
+}
 
 export interface GridTemplateAreasBuilder {
     readonly template: GridTemplateAreas
@@ -69,8 +77,8 @@ function gridTemplateAreasAsString(template: GridTemplateAreas, numRows?: number
     Array
         .from(template.gridAreas.entries())
         .forEach(([name, area]) => {
-            for (let r = area.row - 1; r < area.row + (area.spannedRows || 1) - 1; ++r) {
-                for (let c = area.column - 1; c < area.column + (area.spannedColumns || 1) - 1; ++c) {
+            for (let r = area.row - 1; r < area.row + (area.rowsSpanned || 1) - 1; ++r) {
+                for (let c = area.column - 1; c < area.column + (area.columnsSpanned || 1) - 1; ++c) {
                     matrix[r][c] = name
                 }
             }
@@ -94,17 +102,17 @@ function boundsFor(
 }
 
 function convertAreaToRowBoundsFor(area: GridArea): [min: number, max: number] {
-    return [area.row, area.row + (area.spannedRows || 1) - 1]
+    return [area.row, area.row + (area.rowsSpanned || 1) - 1]
 }
 
 function convertAreaToColumnBoundsFor(area: GridArea): [min: number, max: number] {
-    return [area.column, area.column + (area.spannedColumns || 1) - 1]
+    return [area.column, area.column + (area.columnsSpanned || 1) - 1]
 }
 
 export function gridArea(row: number, column: number, spannedRows?: number, spannedColumns?: number): GridArea {
     return {
         row, column,
-        spannedRows: spannedRows || 1,
-        spannedColumns: spannedColumns || 1
+        rowsSpanned: spannedRows || 1,
+        columnsSpanned: spannedColumns || 1
     }
 }

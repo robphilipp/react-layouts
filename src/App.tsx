@@ -111,14 +111,11 @@ function App() {
                         <CellContents/>
                     </GridCell>
                 </Grid>
-                {/*<CellContents/>*/}
             </GridCell>
             <GridCell gridAreaName='aside'>
-                {/*<GridCell row={2} column={3}>*/}
                 <CellContents/>
             </GridCell>
             <GridCell gridAreaName='footer'>
-                {/*<GridCell row={3} column={1} columnsSpanned={3}>*/}
                 <CellContents/>
             </GridCell>
         </Grid>

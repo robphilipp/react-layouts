@@ -1,5 +1,5 @@
 import * as React from "react";
-import {cloneElement, createContext, CSSProperties, useCallback, useContext, useRef, useState} from "react";
+import {cloneElement, createContext, CSSProperties, useCallback, useContext, useState} from "react";
 import {Dimensions} from "./dimensions";
 
 export enum Align {

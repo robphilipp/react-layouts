@@ -1,8 +1,8 @@
-import React, {useLayoutEffect, useRef} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import {Grid, GridCell, useGridCell} from "./Grid";
 import {useFlexItem} from "./Flex";
 import {useWindowDimensions} from "./WindowDimensionsProvider";
-import {gridTrackTemplateBuilder, withFraction, withGridTrack, withLineNames, withPixels} from "./gridTemplates";
+import {GridTrackTemplate, gridTrackTemplateBuilder, withFraction, withGridTrack, withPixels} from "./gridTemplates";
 import {gridArea, gridTemplateAreasBuilder} from "./gridTemplateAreas";
 
 function App() {
@@ -47,20 +47,27 @@ function App() {
     //     </FlexContainer>
     // )
 
+    const [showLast, setShowLast] = useState<boolean>(true)
+
+    function createNestedGridTemplateColumn(showLast: boolean): GridTrackTemplate {
+        return gridTrackTemplateBuilder()
+            .repeatFor(showLast ? 3 : 2, withGridTrack(withFraction(1), 'last one'))
+            .build()
+    }
+
     return (
         <Grid
             dimensionsSupplier={useWindowDimensions}
             gridTemplateColumns={gridTrackTemplateBuilder()
-                .addTrack(withPixels(200))
+                .addTrack(withPixels(150))
                 .addTrack(withFraction(1))
                 .addTrack(withPixels(100))
-                // .repeatFor(2, withGridTrack(withFraction(1)))
                 .build()
             }
             gridTemplateRows={gridTrackTemplateBuilder()
-                .addTrack(withPixels(100))
+                .addTrack(withPixels(65))
                 .addTrack(withFraction(1))
-                .addTrack(withPixels(50))
+                .addTrack(withPixels(40))
                 .build()
             }
             gridTemplateAreas={gridTemplateAreasBuilder()
@@ -76,19 +83,15 @@ function App() {
             showGrid={false}
         >
             <GridCell gridAreaName='header'>
-                {/*<GridCell row={1} column={1} columnsSpanned={3}>*/}
                 <CellContents/>
             </GridCell>
             <GridCell row={2} column={1}>
                 <CellContents/>
             </GridCell>
             <GridCell gridAreaName='main'>
-                {/*<GridCell row={2} column={2}>*/}
                 <Grid
                     dimensionsSupplier={useGridCell}
-                    gridTemplateColumns={gridTrackTemplateBuilder()
-                        .repeatFor(3, withGridTrack(withFraction(1), 'last one'))
-                        .build()}
+                    gridTemplateColumns={createNestedGridTemplateColumn(showLast)}
                     columnGap={1}
                     rowGap={1}
                 >
@@ -98,8 +101,8 @@ function App() {
                     <GridCell column={1} row={2}>
                         <CellContents/>
                     </GridCell>
-                    <GridCell column={3} row={3}>
-                        <CellContents/>
+                    <GridCell column={3} row={3} isVisible={showLast}>
+                        <CellContents showRemoveButton={true} onClick={() => setShowLast(false)}/>
                     </GridCell>
                     <GridCell column={1} row={4}>
                         <CellContents/>
@@ -178,7 +181,16 @@ function App() {
     // )
 }
 
-function CellContents(): JSX.Element {
+function noop() {
+    /* empty */
+}
+
+interface CellContentsProps {
+    showRemoveButton?: boolean
+    onClick?: () => void
+}
+function CellContents(props: CellContentsProps): JSX.Element {
+    const {showRemoveButton = false, onClick = noop} = props
     const {width, height, row, column, rowsSpanned, columnsSpanned} = useGridCell()
     if (width > 130) {
         return (
@@ -193,7 +205,13 @@ function CellContents(): JSX.Element {
                             marginLeft: 7
                         }}>({rowsSpanned} x {columnsSpanned})</span>
                     </div>
-                    <Canvas width={width / 2} height={height / 3}/>
+                    <Canvas width={width - 20} height={height / 3}/>
+                    {showRemoveButton ?
+                        <div style={{display: 'flex', justifyContent: 'space-around'}}>
+                            <button onClick={onClick}>Remove</button>
+                        </div> :
+                        <span/>
+                    }
                 </div>
             </div>
         )
@@ -205,6 +223,7 @@ function CellContents(): JSX.Element {
                 <div style={{fontSize: '0.7em', color: 'grey'}}>{width} x {height}</div>
                 <div style={{fontSize: '0.7em', color: 'grey'}}>({rowsSpanned} x {columnsSpanned})</div>
                 <Canvas width={width / 2} height={height / 3}/>
+                {showRemoveButton ? <button onClick={onClick}>Remove</button> : <span/>}
             </div>
         </div>
     )

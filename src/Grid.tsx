@@ -11,12 +11,7 @@ import {
     withFraction,
     withGridTrack
 } from "./gridTemplates";
-import {
-    emptyGridTemplateAreas, GridArea,
-    GridTemplateAreas,
-    isGridTemplateAreasEmpty,
-    isGridTemplateAreasNonEmpty
-} from "./gridTemplateAreas";
+import {emptyGridTemplateAreas, GridArea, GridTemplateAreas, isGridTemplateAreasNonEmpty} from "./gridTemplateAreas";
 
 interface UseGridValues {
     width: number
@@ -114,7 +109,7 @@ export function Grid(props: Props): JSX.Element {
                     numColumns: Math.max(dim1.numColumns, dim2.numColumns)
                 }))
         },
-        [children]
+        [children, gridTemplateColumns, gridTemplateRows]
     )
 
     const [gridDimensions, setGridDimensions] = useState<GridDimensions>(calcGridDimensions())
@@ -200,13 +195,6 @@ export function Grid(props: Props): JSX.Element {
     )
 }
 
-// interface GridCellPlacement {
-//     row: number
-//     column: number
-//     rowsSpanned: number
-//     columnsSpanned: number
-// }
-
 interface UseGridCellValues extends GridArea {
     width: number
     height: number
@@ -224,6 +212,7 @@ interface CellProps {
     row?: number | string
     rowsSpanned?: number
     gridAreaName?: string
+    isVisible?: boolean
     // additional styles
     styles?: CSSProperties
     children: JSX.Element
@@ -248,6 +237,7 @@ export function GridCell(props: CellProps): JSX.Element {
         row,
         rowsSpanned,
         gridAreaName,
+        isVisible = true,
         styles,
         children,
     } = props
@@ -258,6 +248,8 @@ export function GridCell(props: CellProps): JSX.Element {
         rowGap, columnGap,
         showGrid
     } = useContext<UseGridValues>(GridContext)
+
+    if (!isVisible) return <></>
 
     // when the grid areas template is not empty and the gridArea was specified, then attempt to find the
     // coordinates (row, column) and the spans that define the cell
@@ -341,7 +333,6 @@ export function GridCell(props: CellProps): JSX.Element {
             height: cellHeight,
             row: rowIndex,
             column: columnIndex,
-            // rowsSpanned, columnsSpanned
             rowsSpanned: spannedRows,
             columnsSpanned: spannedColumns
         }}>
@@ -349,11 +340,6 @@ export function GridCell(props: CellProps): JSX.Element {
                 style={{
                     height: cellHeight,
                     width: cellWidth,
-                    // gridColumnStart: column,
-                    // gridColumnEnd: Math.min(columnIndex + spannedColumns, numColumns + 1),
-                    // gridRowStart: row,
-                    // gridRowEnd: Math.min(rowIndex + spannedRows, numRows + 1),
-                    // gridArea: gridAreaName,
                     ...style,
                     ...debug,
                     ...styles

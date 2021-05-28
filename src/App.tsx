@@ -102,7 +102,7 @@ function App() {
                         <CellContents/>
                     </GridCell>
                     <GridCell column={3} row={3} isVisible={showLast}>
-                        <CellContents showRemoveButton={true} onClick={() => setShowLast(false)}/>
+                        <CellContents showRemoveButton={true} onRemoveButtonClick={() => setShowLast(false)}/>
                     </GridCell>
                     <GridCell column={1} row={4}>
                         <CellContents/>
@@ -185,12 +185,21 @@ function noop() {
     /* empty */
 }
 
+function removeButton(onClick: () => void): JSX.Element {
+    return (
+        <div style={{display: 'flex', justifyContent: 'space-around'}}>
+            <button onClick={onClick}>Remove</button>
+        </div>
+    )
+}
+
 interface CellContentsProps {
     showRemoveButton?: boolean
-    onClick?: () => void
+    onRemoveButtonClick?: () => void
 }
+
 function CellContents(props: CellContentsProps): JSX.Element {
-    const {showRemoveButton = false, onClick = noop} = props
+    const {showRemoveButton = false, onRemoveButtonClick = noop} = props
     const {width, height, row, column, rowsSpanned, columnsSpanned} = useGridCell()
     if (width > 130) {
         return (
@@ -206,12 +215,7 @@ function CellContents(props: CellContentsProps): JSX.Element {
                         }}>({rowsSpanned} x {columnsSpanned})</span>
                     </div>
                     <Canvas width={width - 20} height={height / 3}/>
-                    {showRemoveButton ?
-                        <div style={{display: 'flex', justifyContent: 'space-around'}}>
-                            <button onClick={onClick}>Remove</button>
-                        </div> :
-                        <span/>
-                    }
+                    {showRemoveButton ? removeButton(onRemoveButtonClick) : <span/>}
                 </div>
             </div>
         )
@@ -223,7 +227,7 @@ function CellContents(props: CellContentsProps): JSX.Element {
                 <div style={{fontSize: '0.7em', color: 'grey'}}>{width} x {height}</div>
                 <div style={{fontSize: '0.7em', color: 'grey'}}>({rowsSpanned} x {columnsSpanned})</div>
                 <Canvas width={width / 2} height={height / 3}/>
-                {showRemoveButton ? <button onClick={onClick}>Remove</button> : <span/>}
+                {showRemoveButton ? removeButton(onRemoveButtonClick) : <span/>}
             </div>
         </div>
     )

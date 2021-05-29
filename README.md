@@ -1,3 +1,7 @@
+# **Archived**
+
+Please see [react-grid-layout-example](https://github.com/robphilipp/react-grid-layout-example) for an example app using the [react-grid-layout](https://github.com/robphilipp/react-grid-layout) code that builds then [react-resizable-grid-layout](https://www.npmjs.com/package/react-resizeble-grid-layout) npm module.
+
 # react-grid-layout
 
 A number of components (e.g. `<canvas/>`, `<svg/>`, `d3`, `fixed-data-tables`) used in modern react apps require that their size be specified in pixels. Making a single pixel-size-based component responsive to the page size is straightforward. Simply listen for window-resize events and recalculate the component's position and size. But, when your app uses several of these components on the same page, and you'd like to make them responsive in a natural way, recalculating their location and size becomes more difficult and cumbersome.
